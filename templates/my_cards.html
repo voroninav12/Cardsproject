@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-down">
+        <div>
+            <h1 class="display-2 display-font fw-bold mb-2">
+                <span class="text-gradient">Мои карточки</span>
+            </h1>
+            <p class="text-lead">Ваша коллекция созданных работ</p>
+        </div>
+        <a href="{{ url_for('cards.create_card') }}" class="btn-premium px-5 py-3 pulse">
+            <i class="bi bi-plus-circle me-2"></i>Новая карточка
+        </a>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3" data-aos="flip-left" data-aos-delay="100">
+            <div class="premium-card p-4 text-center card-hover">
+                <i class="bi bi-card-heading fs-1 text-gradient mb-3 floating"></i>
+                <div class="stats-number">{{ cards|length }}</div>
+                <p class="text-muted mb-0 fw-semibold">Всего карточек</p>
+            </div>
+        </div>
+        <div class="col-md-3" data-aos="flip-left" data-aos-delay="200">
+            <div class="premium-card p-4 text-center card-hover">
+                <i class="bi bi-layers fs-1 text-gradient mb-3 floating"></i>
+                <div class="stats-number">
+                    {% set templates_count = [] %}
+                    {% for card in cards %}
+                    {% if card.template.id not in templates_count %}
+                    {% set _ = templates_count.append(card.template.id) %}
+                    {% endif %}
+                    {% endfor %}
+                    {{ templates_count|length }}
+                </div>
+                <p class="text-muted mb-0 fw-semibold">Шаблонов</p>
+            </div>
+        </div>
+        <div class="col-md-3" data-aos="flip-left" data-aos-delay="300">
+            <div class="premium-card p-4 text-center card-hover">
+                <i class="bi bi-image fs-1 text-gradient mb-3 floating"></i>
+                <div class="stats-number">
+                    {{ cards|selectattr("image_filename")|list|length +
+                    cards|selectattr("back_image_filename")|list|length }}
+                </div>
+                <p class="text-muted mb-0 fw-semibold">Изображений</p>
+            </div>
+        </div>
+        <div class="col-md-3" data-aos="flip-left" data-aos-delay="100">
+            <div class="premium-card p-4 text-center card-hover">
+                <i class="bi bi-card-heading fs-1 text-gradient mb-3 floating"></i>
+                <div class="stats-number">{{ cards|length }}</div>
+                <p class="text-muted mb-0 fw-semibold">Готово к печати</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Интерактивные фильтры -->
+    <div class="premium-card p-4 mb-5" data-aos="fade-up">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-funnel me-2 text-gradient"></i>Фильтры и поиск
+                </h6>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control-premium" placeholder="Поиск по названию..." id="searchInput">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex gap-3 flex-wrap">
+                    <select class="form-control-premium" id="templateFilter">
+                        <option value="">Все шаблоны</option>
+                        {% for template in templates %}
+                        <option value="{{ template.id }}">{{ template.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="form-control-premium" id="sortSelect">
+                        <option value="newest">Сначала новые</option>
+                        <option value="oldest">Сначала старые</option>
+                        <option value="name">По названию</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сетка карточек -->
+    {% if cards %}
+    <div class="row g-4" id="cardsGrid">
+        {% for card in cards %}
+        <div class="col-lg-6 grid-item" data-template="{{ card.template.id }}" data-created="{{ card.created_date.timestamp() }}">
+            <div class="premium-card h-100 card-interactive">
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold mb-2 card-title">{{ card.title or 'Без названия' }}</h5>
+                            <span class="badge-premium">{{ card.template.name }}</span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-premium border-0 rounded-circle dropdown-toggle"
+                                    type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a href="{{ url_for('cards.print_cards', template_id=card.template.id) }}"
+                                       class="dropdown-item">
+                                        <i class="bi bi-printer me-2 text-success"></i>Печать
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="bi bi-download me-2 text-primary"></i>Скачать
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#">
+                                        <i class="bi bi-trash me-2"></i>Удалить
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Контент с анимацией -->
+                    <div class="mb-4">
+                        {% if card.description %}
+                        <p class="text-muted mb-4 card-description">{{ card.description }}</p>
+                        {% endif %}
+
+                        <!-- Галерея изображений -->
+                        <div class="row g-3">
+                            {% if card.image_filename %}
+                            <div class="col-6">
+                                <div class="premium-card p-2 text-center image-hover">
+                                    <small class="text-muted d-block mb-2">Лицевая сторона</small>
+                                    <img src="{{ url_for('static', filename='uploads/' + card.image_filename) }}"
+                                         class="rounded-2 w-100 card-image"
+                                         style="height: 120px; object-fit: cover; cursor: pointer;"
+                                         onclick="openLightbox(this.src)"
+                                         onerror="this.src='https://via.placeholder.com/150'">
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if card.back_image_filename %}
+                            <div class="col-6">
+                                <div class="premium-card p-2 text-center image-hover">
+                                    <small class="text-muted d-block mb-2">Оборотная сторона</small>
+                                    <img src="{{ url_for('static', filename='uploads/' + card.back_image_filename) }}"
+                                         class="rounded-2 w-100 card-image"
+                                         style="height: 120px; object-fit: cover; cursor: pointer;"
+                                         onclick="openLightbox(this.src)"
+                                         onerror="this.src='https://via.placeholder.com/150'">
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Футер с анимацией -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <div class="text-muted small card-date">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ card.created_date.strftime('%d.%m.%Y') }}
+                        </div>
+                        <a href="{{ url_for('cards.print_cards', template_id=card.template.id) }}"
+                           class="btn btn-sm btn-premium pulse">
+                            <i class="bi bi-printer me-1"></i>Печать
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Пустое состояние -->
+    <div class="text-center py-5" data-aos="fade-up">
+        <div class="feature-icon mx-auto mb-4 floating">
+            <i class="bi bi-card-heading"></i>
+        </div>
+        <h3 class="display-font fw-bold mb-3">Карточек пока нет</h3>
+        <p class="text-muted mb-4">Создайте вашу первую карточку на основе существующего шаблона</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('cards.create_card') }}" class="btn-premium px-5 py-3 pulse">
+                <i class="bi bi-plus-circle me-2"></i>Создать карточку
+            </a>
+            <a href="{{ url_for('templates.create_template') }}" class="btn-premium px-5 py-3 pulse">
+                <i class="bi bi-plus-circle me-2"></i>Создать шаблон
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Lightbox для изображений -->
+<div class="modal fade" id="imageLightbox" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="lightboxImage" class="img-fluid rounded-3" style="max-height: 70vh;" onerror="this.src='https://via.placeholder.com/800x600'">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Фильтрация и поиск
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const templateFilter = document.getElementById('templateFilter');
+        const sortSelect = document.getElementById('sortSelect');
+
+        function filterCards() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const templateValue = templateFilter.value;
+            const sortValue = sortSelect.value;
+
+            const cards = document.querySelectorAll('.grid-item');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const description = card.querySelector('.card-description')?.textContent.toLowerCase() || '';
+                const template = card.getAttribute('data-template');
+                const created = card.getAttribute('data-created');
+
+                const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+                const matchesTemplate = !templateValue || template === templateValue;
+
+                if (matchesSearch && matchesTemplate) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                    card.style.animation = 'fadeIn 0.5s ease';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            sortCards(sortValue);
+
+            // Показать/скрыть сообщение о пустом результате
+            const emptyState = document.querySelector('.text-center.py-5');
+            if (emptyState) {
+                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        }
+
+        function sortCards(sortBy) {
+            const container = document.getElementById('cardsGrid');
+            const cards = Array.from(container.querySelectorAll('.grid-item'));
+
+            cards.sort((a, b) => {
+                switch(sortBy) {
+                    case 'newest':
+                        return b.getAttribute('data-created') - a.getAttribute('data-created');
+                    case 'oldest':
+                        return a.getAttribute('data-created') - b.getAttribute('data-created');
+                    case 'name':
+                        return a.querySelector('.card-title').textContent.localeCompare(b.querySelector('.card-title').textContent);
+                    default:
+                        return 0;
+                }
+            });
+
+            cards.forEach((card, index) => {
+                container.appendChild(card);
+                card.style.animationDelay = `${index * 50}ms`;
+            });
+        }
+
+        searchInput.addEventListener('input', filterCards);
+        templateFilter.addEventListener('change', filterCards);
+        sortSelect.addEventListener('change', filterCards);
+
+        filterCards();
+    });
+
+    // Lightbox для изображений
+    function openLightbox(src) {
+        const lightbox = new bootstrap.Modal(document.getElementById('imageLightbox'));
+        document.getElementById('lightboxImage').src = src;
+        lightbox.show();
+    }
+
+    // Интерактивные эффекты для карточек
+    document.querySelectorAll('.card-interactive').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateY = (x - centerX) / 25;
+            const rotateX = (centerY - y) / 25;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+        });
+    });
+
+    document.querySelectorAll('.card-image').forEach(img => {
+        img.addEventListener('load', function() {
+            this.style.opacity = '0';
+            this.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                this.style.opacity = '1';
+            }, 50);
+        });
+    });
+</script>
+
+<style>
+    .grid-item {
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #imageLightbox .modal-content {
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+    }
+
+    .image-hover {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .image-hover:hover {
+        transform: scale(1.05);
+    }
+
+    .image-hover img {
+        transition: transform 0.3s ease;
+    }
+
+    .image-hover:hover img {
+        transform: scale(1.1);
+    }
+
+    .dropdown-menu {
+        animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}

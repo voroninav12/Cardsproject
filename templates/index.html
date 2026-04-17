@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-section min-vh-100 d-flex align-items-center position-relative overflow-hidden pt-5">
+    <div class="container position-relative z-2">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-aos="fade-right" data-aos-delay="200">
+                <!-- Заголовок -->
+                <h1 class="display-1 display-font fw-bold mb-4">
+                    <span>Создавайте</span>
+                    <br>
+                    <span class="text-gradient">профессиональные</span>
+                    <br>
+                    <span class="text-gradient">карточки</span>
+                </h1>
+
+                <p class="text-lead mb-4">
+                    Мощные инструменты для безупречного дизайна.
+                    <span class="d-block mt-2">Создавайте, управляйте и печатайте с идеальным качеством.</span>
+                </p>
+
+                {% if not current_user.is_authenticated %}
+                <div class="d-flex gap-3 flex-wrap mt-5">
+                    <a href="{{ url_for('auth.register') }}" class="btn-premium btn-lg px-5 py-3 pulse">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Начать бесплатно
+                    </a>
+                    <a href="#features" class="btn-premium btn-lg px-5 py-3 pulse">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Смотреть демо
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-flex gap-3 flex-wrap mt-5">
+                    <a href="{{ url_for('dashboard') }}" class="btn-premium btn-lg px-5 py-3 pulse">
+                        <i class="bi bi-lightning-charge me-2"></i>Панель управления
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-6" data-aos="fade-left" data-aos-delay="800">
+                <!-- Демо-карточка -->
+                <div class="premium-card p-5 position-relative floating" style="max-width: 500px; margin: 0 auto;">
+                    <div class="feature-icon floating mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <i class="bi bi-magic fs-2"></i>
+                    </div>
+
+                    <h4 class="display-font fw-bold text-gradient text-center mb-4">Живой предпросмотр</h4>
+
+                    <!-- Демо-карточка -->
+                    <div class="premium-card p-4 mb-4 glow" id="demoCard">
+                        <div class="demo-card-inner p-4 text-center rounded-3"
+                             style="background: linear-gradient(135deg, var(--beige-primary), var(--cream));
+                                    transition: all 0.5s ease;
+                                    min-height: 200px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: center;">
+                            <h5 class="fw-bold text-dark mb-3" id="demoTitle">Ваша визитка</h5>
+                            <p class="text-muted mb-3" id="demoDesc">Профессиональный дизайн</p>
+                            <div class="demo-image bg-white rounded-3 p-3 mx-auto"
+                                 style="width: 80px; height: 80px;">
+                                <i class="bi bi-person-circle fs-2 text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Контролы для демо -->
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <button class="btn btn-sm btn-outline-premium w-100" onclick="changeDemoStyle('business')">
+                                Бизнес
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-sm btn-outline-premium w-100" onclick="changeDemoStyle('creative')">
+                                Креатив
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-sm btn-outline-premium w-100" onclick="changeDemoStyle('minimal')">
+                                Минимал
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Декоративные элементы -->
+    <div class="hero-decorations position-absolute top-0 start-0 w-100 h-100" style="z-index: 1; pointer-events: none;">
+        <div class="floating-element" style="animation-delay: 0.5s; position: absolute; top: 15%; right: 5%; width: 100px; height: 100px;">
+            <div class="premium-card p-3" style="transform: rotate(15deg); opacity: 0.7;">
+                <i class="bi bi-palette fs-2 text-gradient d-block text-center"></i>
+            </div>
+        </div>
+        <div class="floating-element" style="animation-delay: 1s; position: absolute; bottom: 20%; left: 5%; width: 80px; height: 80px;">
+            <div class="premium-card p-3" style="transform: rotate(-10deg); opacity: 0.7;">
+                <i class="bi bi-brush fs-2 text-gradient d-block text-center"></i>
+            </div>
+        </div>
+        <div class="floating-element" style="animation-delay: 1.5s; position: absolute; top: 40%; left: 10%; width: 60px; height: 60px;">
+            <div class="premium-card p-2" style="transform: rotate(20deg); opacity: 0.5;">
+                <i class="bi bi-card-text fs-3 text-gradient d-block text-center"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Функции -->
+<section id="features" class="section-padding bg-white position-relative">
+    <div class="container">
+        <div class="row text-center mb-5" data-aos="fade-up">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-3 display-font fw-bold mb-4">
+                    <span class="text-gradient">Мощные</span> возможности
+                </h2>
+                <p class="text-lead">Все необходимое для профессионального дизайна</p>
+            </div>
+        </div>
+
+        <div class="row g-5">
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+                <div class="premium-card p-5 text-center h-100 card-hover" style="min-height: 300px;">
+                    <div class="feature-icon floating mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <i class="bi bi-lightning fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Мгновенное создание</h4>
+                    <p class="text-muted mb-4">Интуитивный конструктор с готовыми шаблонами</p>
+                    <div class="progress-premium mt-3"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
+                <div class="premium-card p-5 text-center h-100 card-hover" style="min-height: 300px;">
+                    <div class="feature-icon floating mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <i class="bi bi-printer fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Идеальная печать</h4>
+                    <p class="text-muted mb-4">Профессиональные настройки для безупречного результата</p>
+                    <div class="progress-premium mt-3" style="animation-delay: 0.5s;"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="zoom-in" data-aos-delay="500">
+                <div class="premium-card p-5 text-center h-100 card-hover" style="min-height: 300px;">
+                    <div class="feature-icon floating mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <i class="bi bi-palette2 fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Премиум дизайн</h4>
+                    <p class="text-muted mb-4">Современные инструменты для уникальных решений</p>
+                    <div class="progress-premium mt-3" style="animation-delay: 1s;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Демо смены стилей
+    function changeDemoStyle(style) {
+        const demoCard = document.getElementById('demoCard');
+        const demoInner = demoCard.querySelector('.demo-card-inner');
+        const demoTitle = document.getElementById('demoTitle');
+        const demoDesc = document.getElementById('demoDesc');
+
+        // Анимация исчезновения
+        demoCard.style.transform = 'scale(0.8)';
+        demoCard.style.opacity = '0.5';
+
+        setTimeout(() => {
+            // Смена контента
+            const styles = {
+                business: {
+                    bg: 'linear-gradient(135deg, #FFFFFF, var(--beige-light))',
+                    title: 'Бизнес визитка',
+                    desc: 'Профессиональный стиль'
+                },
+                creative: {
+                    bg: 'linear-gradient(135deg, var(--coral-light), var(--peach))',
+                    title: 'Креативный дизайн',
+                    desc: 'Яркое решение'
+                },
+                minimal: {
+                    bg: 'linear-gradient(135deg, var(--beige-primary), var(--cream))',
+                    title: 'Минимализм',
+                    desc: 'Просто и элегантно'
+                }
+            };
+
+            const selected = styles[style] || styles.business;
+
+            demoInner.style.background = selected.bg;
+            demoTitle.textContent = selected.title;
+            demoDesc.textContent = selected.desc;
+
+            // Анимация появления
+            demoCard.style.transform = 'scale(1)';
+            demoCard.style.opacity = '1';
+
+        }, 300);
+    }
+
+    // Автоматическая смена демо
+    let demoCounter = 0;
+    const demoStyles = ['business', 'creative', 'minimal'];
+
+    // Запустить смену стилей через 3 секунды
+    setTimeout(() => {
+        setInterval(() => {
+            changeDemoStyle(demoStyles[demoCounter]);
+            demoCounter = (demoCounter + 1) % demoStyles.length;
+        }, 4000);
+    }, 3000);
+</script>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #faf7f2 0%, #ffffff 50%, #f5f0e6 100%);
+        position: relative;
+        overflow: hidden;
+        padding-top: 80px;
+    }
+
+    .hero-section .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-decorations {
+        z-index: 1 !important;
+        pointer-events: none;
+    }
+
+    .floating-element {
+        animation: float 6s ease-in-out infinite;
+        opacity: 0.7;
+    }
+
+    .hero-decorations .premium-card {
+        opacity: 0.7;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    .demo-card-inner {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #demoCard {
+        transition: all 0.3s ease;
+        margin: 0 auto;
+        max-width: 400px;
+    }
+
+    .premium-card {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .premium-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--coral-primary), var(--coral-dark));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        color: white;
+        font-size: 1.8rem;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--coral-primary), var(--coral-dark));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .display-1 {
+        font-size: 4.5rem;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+    }
+
+    .text-lead {
+        font-size: 1.25rem;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .section-padding {
+        padding: 6rem 0;
+    }
+
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(232, 167, 152, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(232, 167, 152, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(232, 167, 152, 0); }
+    }
+
+    .glow {
+        animation: glow 3s infinite alternate;
+    }
+
+    @keyframes glow {
+        from { box-shadow: 0 0 20px rgba(232, 167, 152, 0.3); }
+        to { box-shadow: 0 0 30px rgba(232, 167, 152, 0.5); }
+    }
+
+    .typewriter {
+        overflow: hidden;
+        border-right: .15em solid var(--coral-primary);
+        white-space: nowrap;
+        animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+    }
+
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 100% }
+    }
+
+    @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: var(--coral-primary); }
+    }
+
+    .progress-premium {
+        height: 4px;
+        background: linear-gradient(90deg, var(--coral-primary), var(--coral-dark));
+        border-radius: 2px;
+        animation: progress 2s ease-in-out infinite;
+    }
+
+    @keyframes progress {
+        0%, 100% { width: 30%; }
+        50% { width: 100%; }
+    }
+
+    /* Адаптивность */
+    @media (max-width: 992px) {
+        .display-1 {
+            font-size: 3.5rem;
+        }
+
+        .hero-section {
+            padding-top: 100px;
+            min-height: auto;
+            padding-bottom: 4rem;
+        }
+
+        .row.g-5 {
+            gap: 2rem !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .display-1 {
+            font-size: 2.5rem;
+        }
+
+        .display-3 {
+            font-size: 2rem;
+        }
+
+        .text-lead {
+            font-size: 1.1rem;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .premium-card {
+            padding: 2rem !important;
+        }
+
+        .hero-decorations {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}

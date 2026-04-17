@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="premium-card p-4" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1); margin-bottom: 20px;">
+                <div class="d-flex align-items-center mb-4">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #E8A798, #D4897A); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white; font-size: 25px;">
+                        <i class="bi bi-brush"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-weight: 700; margin: 0; color: #5D4037;">Создание шаблона</h3>
+                        <p style="color: #8D6E63; margin: 0;">Настройте лицевую и оборотную стороны</p>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Основная информация -->
+                    <div class="mb-4">
+                        <h5 style="font-weight: 600; color: #5D4037; border-bottom: 2px solid #E8DFD0; padding-bottom: 8px;">
+                            <i class="bi bi-info-circle me-2" style="color: #E8A798;"></i>Основная информация
+                        </h5>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-tag-fill me-2" style="color: #E8A798;"></i>Название шаблона *
+                            </label>
+                            {{ form.name(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", placeholder="Введите название шаблона", id="templateName") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-text-paragraph me-2" style="color: #E8A798;"></i>Описание шаблона
+                            </label>
+                            {{ form.description(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", rows="3", placeholder="Опишите ваш шаблон...", id="templateDescription") }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-arrows-expand me-2" style="color: #E8A798;"></i>Ширина (мм)
+                                </label>
+                                {{ form.width(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", value="85", id="templateWidth") }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                    <i class="bi bi-arrows-expand-vertical me-2" style="color: #E8A798;"></i>Высота (мм)
+                                </label>
+                                {{ form.height(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", value="55", id="templateHeight") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-palette-fill me-2" style="color: #E8A798;"></i>Цвет фона лицевой стороны
+                            </label>
+                            <div class="input-group">
+                                {{ form.background_color(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px;", value="#FFFFFF", id="backgroundColor") }}
+                                <input type="color" class="form-control" value="#FFFFFF" id="colorPicker"
+                                       style="width: 60px; border: 2px solid #E8DFD0; border-radius: 10px; padding: 5px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Оборотная сторона шаблона -->
+                    <div class="mb-4">
+                        <h5 style="font-weight: 600; color: #5D4037; border-bottom: 2px solid #E8DFD0; padding-bottom: 8px;">
+                            <i class="bi bi-arrow-left-right me-2" style="color: #E8A798;"></i>Оборотная сторона
+                            <small class="text-muted fs-6 ms-2">(будет одинаковой для всех карточек)</small>
+                        </h5>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-card-heading me-2" style="color: #E8A798;"></i>Заголовок на обороте *
+                            </label>
+                            {{ form.back_title(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", placeholder="Название игры или логотип", id="backTitle", value="Название игры") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-palette me-2" style="color: #E8A798;"></i>Цвет фона оборотной стороны
+                            </label>
+                            <div class="input-group">
+                                {{ form.back_background_color(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px;", value="#FFFFFF", id="backBackgroundColor") }}
+                                <input type="color" class="form-control" value="#FFFFFF" id="backColorPicker"
+                                       style="width: 60px; border: 2px solid #E8DFD0; border-radius: 10px; padding: 5px;">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-image me-2" style="color: #E8A798;"></i>Изображение на обороте
+                            </label>
+                            {{ form.back_image_file(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", id="backImage") }}
+                            <div style="color: #8D6E63; font-size: 12px; margin-top: 4px;">
+                                Логотип или изображение для оборота всех карточек
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Категория и настройки -->
+                    <div class="mb-4">
+                        <h5 style="font-weight: 600; color: #5D4037; border-bottom: 2px solid #E8DFD0; padding-bottom: 8px;">
+                            <i class="bi bi-tags me-2" style="color: #E8A798;"></i>Категория и настройки
+                        </h5>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-grid-3x3-gap me-2" style="color: #E8A798;"></i>Категория
+                            </label>
+                            {{ form.category(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", id="templateCategory") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                                <i class="bi bi-tags me-2" style="color: #E8A798;"></i>Теги
+                            </label>
+                            {{ form.tags(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", placeholder="игра, карты, герои...", id="templateTags") }}
+                            <div style="color: #8D6E63; font-size: 12px; margin-top: 4px;">
+                                Введите теги через запятую для удобного поиска
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                {{ form.is_private(class="form-check-input", style="width: 45px; height: 24px;", checked="checked", id="privacySwitch") }}
+                                <label class="form-check-label" style="font-weight: 600; color: #5D4037;">
+                                    <i class="bi bi-lock-fill me-2" style="color: #E8A798;"></i>Личный шаблон
+                                </label>
+                            </div>
+                            <div style="color: #8D6E63; font-size: 14px; margin-left: 28px;" id="privacyDescription">
+                                Шаблон будет виден только вам
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn", style="background: linear-gradient(135deg, #E8A798, #D4897A); border: none; color: white; font-weight: 600; padding: 12px 30px; border-radius: 50px; flex: 1;") }}
+                        <a href="{{ url_for('templates.my_templates') }}" class="btn" style="border: 2px solid #E8A798; background: transparent; color: #E8A798; font-weight: 600; padding: 12px 30px; border-radius: 50px; text-decoration: none; text-align: center; flex: 1;">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Предпросмотр и пресеты -->
+        <div class="col-lg-4">
+            <div class="premium-card p-4" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1); position: sticky; top: 20px;">
+                <h5 style="font-weight: 700; color: #5D4037; text-align: center; margin-bottom: 20px;">
+                    <i class="bi bi-eye me-2" style="color: #E8A798;"></i>Предпросмотр
+                </h5>
+
+                <!-- Переключение между сторонами -->
+                <div class="text-center mb-3">
+                    <button id="flipPreviewButton" class="btn" style="border: 2px solid #E8A798; background: transparent; color: #E8A798; font-weight: 600; padding: 8px 16px; border-radius: 25px; font-size: 14px;">
+                        <i class="bi bi-arrow-repeat me-1"></i> Показать оборот
+                    </button>
+                </div>
+
+                <!-- Предпросмотр лицевой стороны -->
+                <div id="frontPreview" style="display: block;">
+                    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                        <div id="templatePreview" style="width: 200px; height: 120px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; border: 2px solid #E8DFD0;">
+                            <div style="text-align: center; padding: 10px;">
+                                <div style="font-weight: 600; color: #5D4037; font-size: 14px;" id="previewTitle">Название шаблона</div>
+                                <div style="color: #8D6E63; font-size: 12px; margin-top: 5px;" id="previewSize">85x55mm</div>
+                                <div style="color: #E8A798; font-size: 10px; margin-top: 3px;" id="previewCategory">Игровые</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Предпросмотр оборотной стороны -->
+                <div id="backPreview" style="display: none;">
+                    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                        <div id="templateBackPreview" style="width: 200px; height: 120px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; border: 2px solid #E8DFD0; position: relative;">
+                            <div style="text-align: center; padding: 10px; width: 100%;">
+                                <div style="font-weight: 600; color: #5D4037; font-size: 14px; margin-bottom: 8px;" id="previewBackTitle">Название игры</div>
+                                <div style="width: 40px; height: 40px; background: #e9ecef; border-radius: 4px; margin: 0 auto; display: flex; align-items: center; justify-content: center;" id="backImagePreview">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Информация -->
+                <div class="premium-card p-3" style="background: rgba(232, 167, 152, 0.05); border-radius: 12px; margin-bottom: 15px;">
+                    <div style="font-weight: 600; color: #5D4037; margin-bottom: 8px;">Информация о шаблоне:</div>
+                    <div style="color: #8D6E63; font-size: 14px;">
+                        <div>Размер: <span id="sizeInfo">85x55mm</span></div>
+                        <div>Категория: <span id="categoryInfo">Игровые</span></div>
+                        <div>Цвет лицевой: <span id="colorInfo">#FFFFFF</span></div>
+                        <div>Цвет оборота: <span id="backColorInfo">#FFFFFF</span></div>
+                        <div>Статус: <span id="privacyInfo">Личный</span></div>
+                    </div>
+                </div>
+
+                <!-- Быстрые пресеты -->
+                <div class="mt-3">
+                    <div style="font-weight: 600; color: #5D4037; margin-bottom: 12px;">
+                        <i class="bi bi-lightning-charge me-2" style="color: #E8A798;"></i>Быстрые пресеты
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-sm btn-outline-premium w-100 text-start" onclick="applyPreset('game')">
+                                <i class="bi bi-joystick me-2"></i>Игровая колода
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-sm btn-outline-premium w-100 text-start" onclick="applyPreset('business')">
+                                <i class="bi bi-briefcase me-2"></i>Бизнес-визитка
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-sm btn-outline-premium w-100 text-start" onclick="applyPreset('creative')">
+                                <i class="bi bi-palette me-2"></i>Арт-карточка
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-sm btn-outline-premium w-100 text-start" onclick="applyPreset('minimalist')">
+                                <i class="bi bi-dash-circle me-2"></i>Минимализм
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-sm btn-outline-premium w-100 text-start" onclick="applyPreset('elegant')">
+                                <i class="bi bi-gem me-2"></i>Элегантная
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-sm btn-outline-premium w-100 text-start" onclick="applyPreset('modern')">
+                                <i class="bi bi-layout-three-columns me-2"></i>Современная
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small text-center">
+                        <i class="bi bi-info-circle"></i> Нажмите на пресет для автоматической настройки шаблона
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .premium-card,
+    .form-control,
+    .btn {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .form-control:focus {
+        border-color: #E8A798 !important;
+        box-shadow: 0 0 0 0.2rem rgba(232, 167, 152, 0.15) !important;
+        outline: none;
+    }
+
+    .btn-outline-premium {
+        border: 1px solid #E8A798;
+        background: transparent;
+        color: #E8A798;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-align: left;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-premium:hover {
+        background: #E8A798;
+        color: white;
+        transform: translateX(5px);
+    }
+</style>
+
+<script>
+    const PRESETS = {
+        'game': {
+            name: 'Игровая колода',
+            description: 'Классический размер для настольных игр и коллекционных карт.',
+            width: 63,
+            height: 88,
+            color: '#E8D9C5',
+            back_title: 'Колода карт',
+            back_color: '#2C3E50',
+            category: 'game',
+            tags: 'игра, карты, настольная игра'
+        },
+        'business': {
+            name: 'Бизнес-визитка',
+            description: 'Европейский стандарт для деловых контактов и презентаций.',
+            width: 90,
+            height: 50,
+            color: '#FFFFFF',
+            back_title: 'Контакты',
+            back_color: '#F4F6F9',
+            category: 'business',
+            tags: 'визитка, бизнес, контакты'
+        },
+        'creative': {
+            name: 'Арт-карточка',
+            description: 'Яркий формат для творческих проектов и идей.',
+            width: 100,
+            height: 70,
+            color: '#FF6B6B',
+            back_title: 'Творчество',
+            back_color: '#FFE66D',
+            category: 'creative',
+            tags: 'арт, творчество, дизайн'
+        },
+        'minimalist': {
+            name: 'Минимализм',
+            description: 'Лаконичный дизайн без лишних деталей.',
+            width: 85,
+            height: 55,
+            color: '#F5F5F5',
+            back_title: 'Simple',
+            back_color: '#E8E8E8',
+            category: 'minimalist',
+            tags: 'минимализм, простота'
+        },
+        'elegant': {
+            name: 'Элегантная карта',
+            description: 'Изысканный вертикальный формат для приглашений.',
+            width: 80,
+            height: 110,
+            color: '#F8F0E3',
+            back_title: 'Elegance',
+            back_color: '#D4B8A4',
+            category: 'elegant',
+            tags: 'элегантность, приглашение'
+        },
+        'modern': {
+            name: 'Современная карта',
+            description: 'Универсальный современный формат.',
+            width: 95,
+            height: 65,
+            color: '#2C3E50',
+            back_title: 'Modern',
+            back_color: '#34495E',
+            category: 'modern',
+            tags: 'современный, универсальный'
+        }
+    };
+
+    function applyPreset(presetKey) {
+        const preset = PRESETS[presetKey];
+        if (!preset) return;
+
+        document.getElementById('templateName').value = preset.name;
+        document.getElementById('templateDescription').value = preset.description;
+        document.getElementById('templateWidth').value = preset.width;
+        document.getElementById('templateHeight').value = preset.height;
+        document.getElementById('backgroundColor').value = preset.color;
+        document.getElementById('colorPicker').value = preset.color;
+        document.getElementById('backTitle').value = preset.back_title;
+        document.getElementById('backBackgroundColor').value = preset.back_color;
+        document.getElementById('backColorPicker').value = preset.back_color;
+        document.getElementById('templateCategory').value = preset.category;
+        document.getElementById('templateTags').value = preset.tags;
+
+        updateFrontPreview();
+        updateBackPreview();
+        showNotification(`Пресет "${preset.name}" применен`, 'success');
+    }
+
+    function updateFrontPreview() {
+        const name = document.getElementById('templateName').value || 'Название шаблона';
+        const width = document.getElementById('templateWidth').value || '85';
+        const height = document.getElementById('templateHeight').value || '55';
+        const color = document.getElementById('backgroundColor').value || '#FFFFFF';
+        const categorySelect = document.getElementById('templateCategory');
+        const categoryText = getCategoryText(categorySelect.value);
+
+        document.getElementById('previewTitle').textContent = name;
+        document.getElementById('previewSize').textContent = `${width}x${height}mm`;
+        document.getElementById('previewCategory').textContent = categoryText;
+        document.getElementById('templatePreview').style.background = color;
+
+        document.getElementById('sizeInfo').textContent = `${width}x${height}mm`;
+        document.getElementById('categoryInfo').textContent = categoryText;
+        document.getElementById('colorInfo').textContent = color;
+
+        const isLight = isLightColor(color);
+        const textColor = isLight ? '#5D4037' : 'white';
+        const secondaryColor = isLight ? '#8D6E63' : 'rgba(255,255,255,0.8)';
+        const accentColor = isLight ? '#E8A798' : 'rgba(255,255,255,0.9)';
+
+        document.getElementById('previewTitle').style.color = textColor;
+        document.getElementById('previewSize').style.color = secondaryColor;
+        document.getElementById('previewCategory').style.color = accentColor;
+    }
+
+    function updateBackPreview() {
+        const backTitle = document.getElementById('backTitle').value || 'Название игры';
+        const backColor = document.getElementById('backBackgroundColor').value || '#FFFFFF';
+
+        document.getElementById('previewBackTitle').textContent = backTitle;
+        document.getElementById('templateBackPreview').style.background = backColor;
+        document.getElementById('backColorInfo').textContent = backColor;
+
+        const isLight = isLightColor(backColor);
+        document.getElementById('previewBackTitle').style.color = isLight ? '#5D4037' : 'white';
+    }
+
+    function getCategoryText(category) {
+        const categories = {
+            'game': 'Игровые',
+            'business': 'Бизнес',
+            'creative': 'Креативные',
+            'minimalist': 'Минимализм',
+            'elegant': 'Элегантные',
+            'modern': 'Современные',
+            'other': 'Другие'
+        };
+        return categories[category] || 'Другие';
+    }
+
+    function isLightColor(color) {
+        let r, g, b;
+        if (color.startsWith('#')) {
+            r = parseInt(color.slice(1, 3), 16);
+            g = parseInt(color.slice(3, 5), 16);
+            b = parseInt(color.slice(5, 7), 16);
+        } else {
+            return true;
+        }
+        const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+        return brightness > 186;
+    }
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'info'} position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill'} me-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('templateName');
+        const widthInput = document.getElementById('templateWidth');
+        const heightInput = document.getElementById('templateHeight');
+        const colorInput = document.getElementById('backgroundColor');
+        const colorPicker = document.getElementById('colorPicker');
+        const backTitleInput = document.getElementById('backTitle');
+        const backColorInput = document.getElementById('backBackgroundColor');
+        const backColorPicker = document.getElementById('backColorPicker');
+        const backImageInput = document.getElementById('backImage');
+        const categoryInput = document.getElementById('templateCategory');
+        const privacySwitch = document.getElementById('privacySwitch');
+        const privacyDescription = document.getElementById('privacyDescription');
+
+        const flipPreviewButton = document.getElementById('flipPreviewButton');
+        const frontPreviewDiv = document.getElementById('frontPreview');
+        const backPreviewDiv = document.getElementById('backPreview');
+
+        let previewFlipped = false;
+
+        flipPreviewButton.addEventListener('click', function() {
+            previewFlipped = !previewFlipped;
+            if (previewFlipped) {
+                frontPreviewDiv.style.display = 'none';
+                backPreviewDiv.style.display = 'block';
+                flipPreviewButton.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Показать лицевую';
+                updateBackPreview();
+            } else {
+                frontPreviewDiv.style.display = 'block';
+                backPreviewDiv.style.display = 'none';
+                flipPreviewButton.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Показать оборот';
+                updateFrontPreview();
+            }
+        });
+
+        nameInput.addEventListener('input', updateFrontPreview);
+        widthInput.addEventListener('input', updateFrontPreview);
+        heightInput.addEventListener('input', updateFrontPreview);
+        colorInput.addEventListener('input', function() {
+            colorPicker.value = this.value;
+            updateFrontPreview();
+        });
+        colorPicker.addEventListener('input', function() {
+            colorInput.value = this.value;
+            updateFrontPreview();
+        });
+        backTitleInput.addEventListener('input', updateBackPreview);
+        backColorInput.addEventListener('input', function() {
+            backColorPicker.value = this.value;
+            updateBackPreview();
+        });
+        backColorPicker.addEventListener('input', function() {
+            backColorInput.value = this.value;
+            updateBackPreview();
+        });
+        categoryInput.addEventListener('change', updateFrontPreview);
+
+        backImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const backImagePreview = document.getElementById('backImagePreview');
+                    backImagePreview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        privacySwitch.addEventListener('change', function() {
+            const isPrivate = this.checked;
+            document.getElementById('privacyInfo').textContent = isPrivate ? 'Личный' : 'Публичный';
+            privacyDescription.textContent = isPrivate ?
+                'Шаблон будет виден только вам' :
+                'Шаблон будет виден всем пользователям';
+        });
+
+        updateFrontPreview();
+        updateBackPreview();
+    });
+</script>
+{% endblock %}

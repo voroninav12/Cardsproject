@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Левая панель -->
+        <div class="col-md-3">
+            <div class="premium-card h-100 p-4" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1);">
+                <h4 class="fw-bold mb-4" style="color: #5D4037;">
+                    <i class="bi bi-plus-circle me-2" style="color: #E8A798;"></i>Создание карточки
+                </h4>
+
+                <form method="POST" enctype="multipart/form-data" id="cardForm">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Скрытые поля позиционирования -->
+                    <div class="d-none">
+                        {{ form.title_x(id="titleX", value="20") }}
+                        {{ form.title_y(id="titleY", value="20") }}
+                        {{ form.title_font_size(id="titleFontSize", value="20") }}
+                        {{ form.description_x(id="descriptionX", value="20") }}
+                        {{ form.description_y(id="descriptionY", value="60") }}
+                        {{ form.description_font_size(id="descriptionFontSize", value="14") }}
+                        {{ form.image_x(id="imageX", value="20") }}
+                        {{ form.image_y(id="imageY", value="120") }}
+                        {{ form.image_width(id="imageWidth", value="100") }}
+                        {{ form.image_height(id="imageHeight", value="100") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">
+                            <i class="bi bi-layers me-2" style="color: #E8A798;"></i>Выберите шаблон
+                        </label>
+                        <select name="template_id" class="form-control" required style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;" id="templateSelect">
+                            <option value="">-- Выберите шаблон --</option>
+                            {% for template in templates %}
+                            <option value="{{ template.id }}" {% if template.id == selected_template_id|int %}selected{% endif %}>
+                                {{ template.name }} ({{ template.width }}x{{ template.height }}mm)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 style="font-weight: 600; color: #5D4037; border-bottom: 2px solid #E8DFD0; padding-bottom: 8px;">
+                            <i class="bi bi-card-heading me-2" style="color: #E8A798;"></i>Содержимое
+                        </h5>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">Название карточки *</label>
+                            {{ form.title(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", placeholder="Введите название...", id="cardTitle") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">Описание</label>
+                            {{ form.description(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", rows="3", placeholder="Описание...", id="cardDescription") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label style="font-weight: 600; color: #5D4037; margin-bottom: 6px; display: block;">Изображение</label>
+                            {{ form.image_file(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 10px; padding: 10px 14px; font-size: 15px; width: 100%;", id="imageFile") }}
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('cards.my_cards') }}" class="btn" style="border: 2px solid #E8A798; background: transparent; color: #E8A798; font-weight: 600; padding: 12px; border-radius: 10px; text-align: center; text-decoration: none; flex: 1;">
+                            <i class="bi bi-arrow-left me-2"></i>Отмена
+                        </a>
+                        {{ form.submit(class="btn", style="background: linear-gradient(135deg, #E8A798, #D4897A); border: none; color: white; font-weight: 600; padding: 12px; border-radius: 10px; flex: 1;") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Редактор -->
+        <div class="col-md-9">
+            <div class="premium-card p-4 mb-3" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1);">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0" style="color: #5D4037;">Редактор карточки</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm" id="toggleGrid" style="border: 2px solid #E8A798; background: transparent; color: #E8A798; font-weight: 600; padding: 6px 12px; border-radius: 6px;">
+                            <i class="bi bi-grid"></i> Сетка
+                        </button>
+                        <button class="btn btn-sm" id="resetPositions" style="border: 2px solid #E8A798; background: transparent; color: #E8A798; font-weight: 600; padding: 6px 12px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i> Сброс
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Холст для карточки -->
+                <div class="card-canvas-container" style="position: relative; background: #f8f9fa; border-radius: 12px; border: 1px solid #E8DFD0; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+
+                    <!-- Карточка с внутренней сеткой -->
+                    <div id="cardCanvas" style="width: 300px; height: 420px; background: #FFFFFF; border: 2px solid #ccc; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; transform: scale(0.9);">
+
+                        <!-- Сетка внутри карточки -->
+                        <div class="canvas-grid" id="canvasGrid" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; opacity: 0;"></div>
+
+                        <!-- Заголовок (перетаскиваемый) -->
+                        <div class="draggable" id="titleElement"
+                             style="position: absolute; left: 20px; top: 20px; font-size: 20px; font-weight: bold; color: #5D4037; cursor: move; padding: 5px; border: 2px dashed rgba(232, 167, 152, 0.5); background: rgba(232, 167, 152, 0.1); border-radius: 4px; user-select: none; min-width: 100px; text-align: center;"
+                             data-type="title">
+                            Название карточки
+                        </div>
+
+                        <!-- Описание (перетаскиваемый) -->
+                        <div class="draggable" id="descriptionElement"
+                             style="position: absolute; left: 20px; top: 60px; font-size: 14px; color: #8D6E63; cursor: move; padding: 8px; border: 2px dashed rgba(45, 156, 219, 0.5); background: rgba(45, 156, 219, 0.1); border-radius: 4px; user-select: none; max-width: 250px;"
+                             data-type="description">
+                            Описание карточки будет здесь
+                        </div>
+
+                        <!-- Изображение (перетаскиваемое и изменяемое) -->
+                        <div class="draggable resizable" id="imageElement"
+                             style="position: absolute; left: 20px; top: 120px; width: 100px; height: 100px; cursor: move; border: 2px dashed rgba(66, 189, 84, 0.5); background: rgba(66, 189, 84, 0.1); border-radius: 4px; user-select: none; overflow: hidden;"
+                             data-type="image">
+                            <div id="imagePlaceholder" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666;">
+                                <i class="bi bi-image fs-3"></i>
+                                <div style="font-size: 12px; margin-top: 5px;">Изображение</div>
+                            </div>
+                            <img id="imagePreview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+
+                            <!-- Угол для изменения размера -->
+                            <div class="resize-handle" style="position: absolute; right: 0; bottom: 0; width: 12px; height: 12px; background: #E8A798; border-radius: 2px; cursor: nwse-resize; z-index: 10;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <p class="small" style="color: #8D6E63;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Перетаскивайте</strong> элементы мышью.
+                        <strong>Тяните за уголок</strong> изображения чтобы изменить размер.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Информация об обороте -->
+            <div class="premium-card p-4" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1);">
+                <h6 class="fw-bold mb-3" style="color: #5D4037;">
+                    <i class="bi bi-arrow-left-right me-2" style="color: #E8A798;"></i>Оборотная сторона
+                </h6>
+                <p class="mb-0" style="color: #8D6E63;">
+                    Оборотная сторона уже настроена в шаблоне и будет одинаковой для всех карточек.
+                    Здесь вы редактируете только лицевую сторону.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .draggable {
+        transition: border-color 0.2s;
+    }
+
+    .draggable:hover {
+        border-color: #E8A798 !important;
+        background-color: rgba(232, 167, 152, 0.2) !important;
+    }
+
+    .draggable.active {
+        border-color: #E8A798 !important;
+        border-style: solid !important;
+        background-color: rgba(232, 167, 152, 0.3) !important;
+        z-index: 100;
+    }
+
+    .resizable {
+        position: relative;
+    }
+
+    .resize-handle {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .resizable:hover .resize-handle {
+        opacity: 1;
+    }
+
+    .canvas-grid.visible {
+        opacity: 1 !important;
+    }
+
+    #imageElement img {
+        pointer-events: none;
+        user-select: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Основные переменные
+        let activeElement = null;
+        let isDragging = false;
+        let isResizing = false;
+        let startX, startY;
+        let elementX, elementY;
+        let startWidth, startHeight;
+
+        // Элементы
+        const titleElement = document.getElementById('titleElement');
+        const descriptionElement = document.getElementById('descriptionElement');
+        const imageElement = document.getElementById('imageElement');
+        const canvas = document.getElementById('cardCanvas');
+
+        // Поля формы
+        const titleInput = document.getElementById('cardTitle');
+        const descriptionInput = document.getElementById('cardDescription');
+        const imageFileInput = document.getElementById('imageFile');
+
+        // Скрытые поля позиционирования
+        const titleXInput = document.getElementById('titleX');
+        const titleYInput = document.getElementById('titleY');
+        const descriptionXInput = document.getElementById('descriptionX');
+        const descriptionYInput = document.getElementById('descriptionY');
+        const imageXInput = document.getElementById('imageX');
+        const imageYInput = document.getElementById('imageY');
+        const imageWidthInput = document.getElementById('imageWidth');
+        const imageHeightInput = document.getElementById('imageHeight');
+
+        // Инициализация
+        function init() {
+            // Привязка мыши для перетаскивания
+            document.querySelectorAll('.draggable').forEach(element => {
+                element.addEventListener('mousedown', startDrag);
+            });
+
+            // Привязка мыши для изменения размера изображения
+            const resizeHandle = imageElement.querySelector('.resize-handle');
+            if (resizeHandle) {
+                resizeHandle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startResize(e);
+                });
+            }
+
+            // Обновление текста при вводе
+            titleInput.addEventListener('input', function() {
+                titleElement.textContent = this.value || 'Название карточки';
+            });
+
+            descriptionInput.addEventListener('input', function() {
+                descriptionElement.textContent = this.value || 'Описание карточки будет здесь';
+            });
+
+            // Загрузка изображения
+            imageFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const placeholder = document.getElementById('imagePlaceholder');
+                        const preview = document.getElementById('imagePreview');
+
+                        placeholder.style.display = 'none';
+                        preview.style.display = 'block';
+                        preview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Кнопки
+            document.getElementById('toggleGrid').addEventListener('click', function() {
+                const grid = document.getElementById('canvasGrid');
+                grid.classList.toggle('visible');
+
+                if (grid.classList.contains('visible')) {
+                    this.style.background = '#E8A798';
+                    this.style.color = 'white';
+                } else {
+                    this.style.background = 'transparent';
+                    this.style.color = '#E8A798';
+                }
+            });
+
+            document.getElementById('resetPositions').addEventListener('click', function() {
+                resetPositions();
+            });
+
+            // Движения мыши
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', stopDrag);
+
+            // Предотвращаем выделение текста при перетаскивании
+            document.addEventListener('selectstart', function(e) {
+                if (isDragging || isResizing) {
+                    e.preventDefault();
+                }
+            });
+
+            // Сохранение позиций при изменении
+            setupAutoSave();
+        }
+
+        // Перетаскивание
+        function startDrag(e) {
+            if (isResizing) return;
+
+            e.preventDefault();
+            isDragging = true;
+            activeElement = this;
+
+            // Активируем элемент
+            document.querySelectorAll('.draggable').forEach(el => {
+                el.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // Запоминаем начальные координаты
+            startX = e.clientX;
+            startY = e.clientY;
+
+            const rect = this.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            elementX = rect.left - canvasRect.left;
+            elementY = rect.top - canvasRect.top;
+        }
+
+        function doDrag(e) {
+            if (isResizing) {
+                doResize(e);
+                return;
+            }
+
+            if (!isDragging || !activeElement) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            const newX = elementX + dx;
+            const newY = elementY + dy;
+
+            // Ограничиваем перемещение внутри карточки
+            const canvasWidth = canvas.offsetWidth;
+            const canvasHeight = canvas.offsetHeight;
+            const elementWidth = activeElement.offsetWidth;
+            const elementHeight = activeElement.offsetHeight;
+
+            const maxX = canvasWidth - elementWidth;
+            const maxY = canvasHeight - elementHeight;
+
+            const clampedX = Math.max(0, Math.min(newX, maxX));
+            const clampedY = Math.max(0, Math.min(newY, maxY));
+
+            activeElement.style.left = clampedX + 'px';
+            activeElement.style.top = clampedY + 'px';
+
+            // Сохраняем позицию в скрытых полях
+            savePosition(activeElement.dataset.type, clampedX, clampedY);
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            isResizing = false;
+            if (activeElement) {
+                activeElement.classList.remove('active');
+            }
+            activeElement = null;
+        }
+
+        // Изменение размера
+        function startResize(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            isResizing = true;
+            activeElement = imageElement;
+
+            startX = e.clientX;
+            startY = e.clientY;
+
+            startWidth = imageElement.offsetWidth;
+            startHeight = imageElement.offsetHeight;
+
+            // Активируем элемент
+            document.querySelectorAll('.draggable').forEach(el => {
+                el.classList.remove('active');
+            });
+            imageElement.classList.add('active');
+        }
+
+        function doResize(e) {
+            if (!isResizing || !activeElement) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            // Минимальный размер
+            const minSize = 50;
+            const newWidth = Math.max(minSize, startWidth + dx);
+            const newHeight = Math.max(minSize, startHeight + dy);
+
+            // Максимальный размер (80% от карточки)
+            const maxWidth = canvas.offsetWidth * 0.8;
+            const maxHeight = canvas.offsetHeight * 0.8;
+
+            const clampedWidth = Math.min(newWidth, maxWidth);
+            const clampedHeight = Math.min(newHeight, maxHeight);
+
+            imageElement.style.width = clampedWidth + 'px';
+            imageElement.style.height = clampedHeight + 'px';
+
+            // Сохраняем размер
+            imageWidthInput.value = Math.round(clampedWidth);
+            imageHeightInput.value = Math.round(clampedHeight);
+
+            // Обновляем позицию, чтобы элемент не выходил за границы
+            const rect = imageElement.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            const currentX = rect.left - canvasRect.left;
+            const currentY = rect.top - canvasRect.top;
+
+            const maxX = canvas.offsetWidth - clampedWidth;
+            const maxY = canvas.offsetHeight - clampedHeight;
+
+            if (currentX > maxX) {
+                imageElement.style.left = maxX + 'px';
+                imageXInput.value = Math.round(maxX);
+            }
+
+            if (currentY > maxY) {
+                imageElement.style.top = maxY + 'px';
+                imageYInput.value = Math.round(maxY);
+            }
+        }
+
+        // Сохранение позиций
+        function savePosition(type, x, y) {
+            switch(type) {
+                case 'title':
+                    titleXInput.value = Math.round(x);
+                    titleYInput.value = Math.round(y);
+                    break;
+                case 'description':
+                    descriptionXInput.value = Math.round(x);
+                    descriptionYInput.value = Math.round(y);
+                    break;
+                case 'image':
+                    imageXInput.value = Math.round(x);
+                    imageYInput.value = Math.round(y);
+                    break;
+            }
+        }
+
+        // Автосохранение размеров
+        function setupAutoSave() {
+            // Сохраняем текущие размеры
+            imageWidthInput.value = imageElement.offsetWidth;
+            imageHeightInput.value = imageElement.offsetHeight;
+
+            // Сохраняем текущие позиции
+            const titleRect = titleElement.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            titleXInput.value = Math.round(titleRect.left - canvasRect.left);
+            titleYInput.value = Math.round(titleRect.top - canvasRect.top);
+
+            const descRect = descriptionElement.getBoundingClientRect();
+            descriptionXInput.value = Math.round(descRect.left - canvasRect.left);
+            descriptionYInput.value = Math.round(descRect.top - canvasRect.top);
+
+            const imgRect = imageElement.getBoundingClientRect();
+            imageXInput.value = Math.round(imgRect.left - canvasRect.left);
+            imageYInput.value = Math.round(imgRect.top - canvasRect.top);
+        }
+
+        // Сброс позиций
+        function resetPositions() {
+            // Сбрасываем позиции элементов
+            titleElement.style.left = '20px';
+            titleElement.style.top = '20px';
+
+            descriptionElement.style.left = '20px';
+            descriptionElement.style.top = '60px';
+
+            imageElement.style.left = '20px';
+            imageElement.style.top = '120px';
+            imageElement.style.width = '100px';
+            imageElement.style.height = '100px';
+
+            // Сбрасываем скрытые поля
+            titleXInput.value = 20;
+            titleYInput.value = 20;
+
+            descriptionXInput.value = 20;
+            descriptionYInput.value = 60;
+
+            imageXInput.value = 20;
+            imageYInput.value = 120;
+            imageWidthInput.value = 100;
+            imageHeightInput.value = 100;
+
+            // Показываем уведомление
+            showMessage('Позиции сброшены!', 'info');
+        }
+
+        // Вспомогательные функции
+        function showMessage(message, type) {
+            // Создаем простое уведомление
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'info' ? '#E8A798' : '#dc3545'};
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                z-index: 1000;
+                font-weight: 500;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                animation: fadeIn 0.3s;
+            `;
+
+            document.body.appendChild(div);
+
+            setTimeout(() => {
+                div.style.animation = 'fadeOut 0.3s';
+                setTimeout(() => div.remove(), 300);
+            }, 2000);
+        }
+
+        // Добавляем стили для анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-20px); }
+            }
+
+            .resize-handle {
+                border: 1px solid white;
+                box-shadow: 0 0 0 1px #E8A798;
+            }
+
+            .draggable.active .resize-handle {
+                opacity: 1 !important;
+                background: #D4897A;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Запускаем инициализацию
+        init();
+
+        // Добавляем подсказку при наведении на уголок
+        const resizeHandle = imageElement.querySelector('.resize-handle');
+        if (resizeHandle) {
+            resizeHandle.title = "Тяните для изменения размера";
+        }
+    });
+</script>
+{% endblock %}

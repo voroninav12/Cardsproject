@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Заголовок -->
+    <div class="text-center mb-5">
+        <h1 class="display-2 display-font fw-bold mb-3">
+            <span class="text-gradient">Публичные шаблоны</span>
+        </h1>
+        <p class="text-lead">Выберите готовый шаблон для создания карточек</p>
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div class="premium-card p-4 mb-5">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark mb-2">
+                    <i class="bi bi-search me-2 text-gradient"></i>Поиск шаблонов
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control-premium" placeholder="Название, автор, теги..." id="searchInput">
+                    <button class="btn btn-premium" onclick="performSearch()">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold text-dark mb-2">Категория</label>
+                <select class="form-control-premium" id="categoryFilter" onchange="filterTemplates()">
+                    <option value="">Все категории</option>
+                    <option value="business">Бизнес</option>
+                    <option value="creative">Креативные</option>
+                    <option value="minimalist">Минимализм</option>
+                    <option value="elegant">Элегантные</option>
+                    <option value="modern">Современные</option>
+                    <option value="vintage">Винтажные</option>
+                    <option value="other">Другие</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold text-dark mb-2">Сортировка</label>
+                <select class="form-control-premium" id="sortFilter" onchange="sortTemplates()">
+                    <option value="newest">Сначала новые</option>
+                    <option value="cards">По количеству карточек</option>
+                    <option value="name">По названию</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="premium-card p-4 text-center">
+                <i class="bi bi-layers fs-1 text-gradient mb-3"></i>
+                <div class="stats-number">{{ templates|length }}</div>
+                <p class="text-muted mb-0 fw-semibold">Шаблонов доступно</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="premium-card p-4 text-center">
+                <i class="bi bi-card-heading fs-1 text-gradient mb-3"></i>
+                <div class="stats-number">{{ total_cards }}</div>
+                <p class="text-muted mb-0 fw-semibold">Карточек создано</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="premium-card p-4 text-center">
+                <i class="bi bi-people fs-1 text-gradient mb-3"></i>
+                <div class="stats-number">{{ authors_count }}</div>
+                <p class="text-muted mb-0 fw-semibold">Авторов</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сетка шаблонов -->
+    {% if templates %}
+    <div class="template-grid-premium" id="templatesGrid">
+        {% for template in templates %}
+        {% set cards_count = template.cards|length if template.cards is iterable else 0 %}
+        <div class="grid-item"
+             data-category="{{ template.category or 'other' }}"
+             data-cards="{{ cards_count }}"
+             data-name="{{ template.name or ''|lower }}"
+             data-date="{{ template.created_date.timestamp() if template.created_date else 0 }}">
+
+            <div class="premium-card h-100 template-card">
+                <!-- Заголовок шаблона -->
+                <div class="template-header p-4 pb-2">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold mb-1 template-title">{{ template.name or 'Без названия' }}</h5>
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="bi bi-person me-1"></i>
+                                <span class="template-author">{{ template.user.name if template.user else 'Неизвестный автор' }}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-premium" onclick="toggleFavorite({{ template.id }}, this)">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+
+                    {% if template.description %}
+                    <p class="text-muted small mt-2 mb-0">{{ template.description[:100] }}{% if template.description|length > 100 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Предпросмотр шаблона -->
+                <div class="template-preview p-3 pt-2">
+                    <div class="template-preview-box"
+                         style="background-color: {{ template.background_color or '#FFFFFF' }};
+                                border: 1px solid #dee2e6;
+                                border-radius: 8px;
+                                height: 180px;
+                                position: relative;
+                                overflow: hidden;
+                                cursor: pointer;"
+                         onclick="showTemplateDetails({{ template.id }})">
+
+                        <!-- Пример карточки в шаблоне -->
+                        <div class="card-example" style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; padding: 15px;">
+                            <div style="font-weight: 600; color: #333; margin-bottom: 8px;">Пример карточки</div>
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">{{ template.name or 'Название' }}</div>
+
+                            {% if cards_count > 0 %}
+                            <div style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">
+                                {{ cards_count }} карточек
+                            </div>
+                            {% endif %}
+
+                            <!-- Размер шаблона -->
+                            <div style="position: absolute; bottom: 15px; left: 15px; font-size: 0.75rem; color: #888;">
+                                {{ template.width or 85 }}×{{ template.height or 55 }} мм
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Информация и действия -->
+                <div class="template-footer p-3 pt-2 border-top">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="text-muted small">
+                                <i class="bi bi-grid-3x3 me-1"></i>
+                                <span>{{ template.category|default('other')|title }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="badge-premium small">
+                                {{ cards_count }} карт.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar me-1"></i>
+                            <span class="template-date">
+                                {% if template.created_date %}
+                                    {{ template.created_date.strftime('%d.%m.%Y') }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="btn-group">
+                            <a href="{{ url_for('cards.create_card', template_id=template.id) }}"
+                               class="btn btn-sm btn-premium">
+                                <i class="bi bi-plus me-1"></i> Использовать
+                            </a>
+                            <button class="btn btn-sm btn-outline-premium" onclick="showTemplateDetails({{ template.id }})">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Пустое состояние -->
+    <div class="text-center py-5">
+        <div class="feature-icon mx-auto mb-4">
+            <i class="bi bi-layers fs-1 text-gradient"></i>
+        </div>
+        <h3 class="display-font fw-bold mb-3">Публичных шаблонов пока нет</h3>
+        <p class="text-muted mb-4">Создайте первый шаблон и поделитесь им с сообществом</p>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('templates.create_template') }}" class="btn-premium px-5 py-3">
+            <i class="bi bi-plus-circle me-2"></i>Создать шаблон
+        </a>
+        {% else %}
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('auth.register') }}" class="btn-premium px-5 py-3">
+                <i class="bi bi-person-plus me-2"></i>Присоединиться
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn-outline-premium px-5 py-3">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно деталей шаблона -->
+<div class="modal fade" id="templateDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content premium-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-gradient" id="detailTemplateName">Название шаблона</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <div class="detail-preview-box" id="detailPreview"
+                                 style="height: 300px; border: 1px solid #dee2e6; border-radius: 8px; position: relative;">
+                                <!-- Предпросмотр будет здесь -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-info">
+                            <h6 class="fw-semibold mb-3">Подробная информация</h6>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-person text-primary me-2"></i>
+                                    <span>Автор: <strong id="detailAuthor"></strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-calendar text-warning me-2"></i>
+                                    <span>Создан: <strong id="detailDate"></strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-arrows-fullscreen text-info me-2"></i>
+                                    <span>Размер: <strong id="detailSize"></strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-palette text-success me-2"></i>
+                                    <span>Цвет фона: <strong id="detailColor"></strong></span>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-grid-3x3 text-secondary me-2"></i>
+                                    <span>Категория: <strong id="detailCategory"></strong></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="fw-semibold mb-2">Описание</h6>
+                                <p class="text-muted" id="detailDescription">Нет описания</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="fw-semibold mb-2">Теги</h6>
+                                <div id="detailTags">
+                                    <span class="badge-premium small me-1">шаблон</span>
+                                </div>
+                            </div>
+
+                            {% if current_user.is_authenticated %}
+                            <div class="d-grid gap-2">
+                                <a href="#" class="btn btn-premium" id="useTemplateDetailBtn">
+                                    <i class="bi bi-plus-circle me-2"></i>Использовать этот шаблон
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="text-center">
+                                <p class="text-muted mb-3">Войдите, чтобы использовать этот шаблон</p>
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-premium">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Войти в аккаунт
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .template-grid-premium {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .template-card {
+        transition: all 0.2s ease;
+        border: 1px solid var(--beige-dark);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .template-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .template-header {
+        flex-shrink: 0;
+    }
+
+    .template-preview {
+        flex-grow: 1;
+        min-height: 200px;
+    }
+
+    .template-footer {
+        flex-shrink: 0;
+    }
+
+    .card-example {
+        background: rgba(255,255,255,0.9);
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .template-preview-box:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .detail-preview-box {
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .template-grid-premium {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    // Хранилище избранного
+    let favorites = JSON.parse(localStorage.getItem('templateFavorites')) || [];
+
+    // Поиск и фильтрация
+    function performSearch() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const templates = document.querySelectorAll('.grid-item');
+
+        templates.forEach(template => {
+            const title = template.querySelector('.template-title').textContent.toLowerCase();
+            const author = template.querySelector('.template-author').textContent.toLowerCase();
+            const templateCategory = template.getAttribute('data-category');
+
+            const matchesSearch = title.includes(searchTerm) || author.includes(searchTerm);
+            const matchesCategory = !category || templateCategory === category;
+
+            template.style.display = matchesSearch && matchesCategory ? 'block' : 'none';
+        });
+    }
+
+    function filterTemplates() {
+        performSearch();
+    }
+
+    function sortTemplates() {
+        const sortBy = document.getElementById('sortFilter').value;
+        const container = document.getElementById('templatesGrid');
+        const templates = Array.from(container.querySelectorAll('.grid-item'));
+
+        templates.sort((a, b) => {
+            const aCards = parseInt(a.getAttribute('data-cards')) || 0;
+            const bCards = parseInt(b.getAttribute('data-cards')) || 0;
+            const aName = a.getAttribute('data-name') || '';
+            const bName = b.getAttribute('data-name') || '';
+            const aDate = parseFloat(a.getAttribute('data-date')) || 0;
+            const bDate = parseFloat(b.getAttribute('data-date')) || 0;
+
+            switch(sortBy) {
+                case 'newest':
+                    return bDate - aDate;
+                case 'cards':
+                    return bCards - aCards;
+                case 'name':
+                    return aName.localeCompare(bName);
+                default:
+                    return 0;
+            }
+        });
+
+        templates.forEach(template => {
+            container.appendChild(template);
+        });
+    }
+
+    // Лайк публичного шаблона
+    function toggleFavorite(templateId, button) {
+        const index = favorites.indexOf(templateId);
+        const icon = button.querySelector('i');
+
+        if (index === -1) {
+            // Поставить лайк
+            favorites.push(templateId);
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill', 'text-danger');
+            button.classList.add('btn-premium');
+        } else {
+            // Убрать лайк
+            favorites.splice(index, 1);
+            icon.classList.remove('bi-heart-fill', 'text-danger');
+            icon.classList.add('bi-heart');
+            button.classList.remove('btn-premium');
+            button.classList.add('btn-outline-premium');
+        }
+
+        localStorage.setItem('templateFavorites', JSON.stringify(favorites));
+    }
+
+    // Показать детали шаблона
+    function showTemplateDetails(templateId) {
+        // Находим элемент шаблона на странице
+        const templateElement = document.querySelector(`[data-aos-delay]`);
+        if (!templateElement) return;
+
+        const title = templateElement.querySelector('.template-title').textContent;
+        const author = templateElement.querySelector('.template-author').textContent;
+        const category = templateElement.getAttribute('data-category') || 'other';
+        const cardsCount = templateElement.getAttribute('data-cards') || '0';
+        const dateElement = templateElement.querySelector('.template-date');
+        const date = dateElement ? dateElement.textContent.trim() : 'Неизвестно';
+
+        // Находим блок предпросмотра для копирования стилей
+        const previewBox = templateElement.querySelector('.template-preview-box');
+        const backgroundColor = previewBox ? previewBox.style.backgroundColor : '#FFFFFF';
+        const sizeText = previewBox ? previewBox.querySelector('.card-example').innerText.split('\n').pop() : '85×55 мм';
+
+        // Заполняем модальное окно
+        document.getElementById('detailTemplateName').textContent = title;
+        document.getElementById('detailAuthor').textContent = author;
+        document.getElementById('detailDate').textContent = date;
+        document.getElementById('detailSize').textContent = sizeText;
+        document.getElementById('detailColor').textContent = backgroundColor;
+        document.getElementById('detailCategory').textContent = category.charAt(0).toUpperCase() + category.slice(1);
+
+        // Ссылка на использование шаблона
+        document.getElementById('useTemplateDetailBtn').href = `/cards/create_card?template_id=${templateId}`;
+
+        // Создаем предпросмотр
+        const detailPreview = document.getElementById('detailPreview');
+        detailPreview.style.backgroundColor = backgroundColor;
+        detailPreview.innerHTML = `
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; padding: 20px;">
+                <div style="font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 10px;">${title}</div>
+                <div style="color: #666; margin-bottom: 15px;">Пример карточки в шаблоне</div>
+                <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 6px; display: inline-block; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                    <div>Размер: ${sizeText}</div>
+                    <div>Карточек: ${cardsCount}</div>
+                </div>
+            </div>
+        `;
+
+        // Показываем модальное окно
+        const modal = new bootstrap.Modal(document.getElementById('templateDetailsModal'));
+        modal.show();
+    }
+
+    // Восстановить состояние избранного при загрузке
+    function restoreFavorites() {
+        document.querySelectorAll('.grid-item').forEach(item => {
+            const templateId = parseInt(item.querySelector('button').getAttribute('onclick').match(/\d+/)[0]);
+            const button = item.querySelector('button');
+            const icon = button.querySelector('i');
+
+            if (favorites.includes(templateId)) {
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill', 'text-danger');
+                button.classList.remove('btn-outline-premium');
+                button.classList.add('btn-premium');
+            }
+        });
+    }
+
+    // Простое уведомление
+    function showNotification(message, type) {
+        // Создаем элемент уведомления
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'info'} position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        `;
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-info-circle'} me-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Удаляем через 3 секунды
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('searchInput').addEventListener('input', performSearch);
+        restoreFavorites();
+
+        // Автофокус на поиске
+        document.getElementById('searchInput').focus();
+    });
+</script>
+{% endblock %}

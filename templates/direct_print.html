@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="premium-card p-4"
+                 style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1);">
+                <div class="d-flex align-items-center mb-4">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #E8A798, #D4897A); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white; font-size: 25px;">
+                        <i class="bi bi-printer"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-weight: 700; margin: 0; color: #5D4037;">Прямая печать карточек</h3>
+                        <p style="color: #8D6E63; margin: 0;">Непосредственная печать на принтер</p>
+                    </div>
+                </div>
+
+                <!-- Статистика -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="premium-card p-3 text-center"
+                             style="background: rgba(232, 167, 152, 0.05); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #5D4037;">
+                                {{ cards|length }}
+                            </div>
+                            <div style="color: #8D6E63; font-size: 14px;">Всего карточек</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="premium-card p-3 text-center"
+                             style="background: rgba(232, 167, 152, 0.05); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #5D4037;">
+                                {{ template.width }}×{{ template.height }} мм
+                            </div>
+                            <div style="color: #8D6E63; font-size: 14px;">Размер карточки</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="premium-card p-3 text-center"
+                             style="background: rgba(232, 167, 152, 0.05); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #5D4037;" id="pagesCount">0</div>
+                            <div style="color: #8D6E63; font-size: 14px;">Листов бумаги</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="premium-card p-3 text-center"
+                             style="background: rgba(232, 167, 152, 0.05); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700; color: #5D4037;" id="inkUsage">0%</div>
+                            <div style="color: #8D6E63; font-size: 14px;">Заполнение</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Основные кнопки печати -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <button class="btn w-100"
+                                style="background: linear-gradient(135deg, #E8A798, #D4897A); border: none; color: white; font-weight: 600; padding: 15px; border-radius: 12px;"
+                                onclick="printNow()">
+                            <i class="bi bi-printer-fill me-2"></i>Напечатать сейчас
+                        </button>
+                        <small class="text-muted d-block mt-2">Быстрая печать с настройками по умолчанию</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <button class="btn w-100"
+                                style="border: 2px solid #2C3E50; background: transparent; color: #2C3E50; font-weight: 600; padding: 15px; border-radius: 12px;"
+                                data-bs-toggle="modal" data-bs-target="#settingsModal">
+                            <i class="bi bi-gear me-2"></i>Настройки печати
+                        </button>
+                        <small class="text-muted d-block mt-2">Настроить параметры перед печатью</small>
+                    </div>
+                </div>
+
+                <!-- Быстрые действия -->
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('cards.export_pdf', template_id=template.id) }}"
+                           class="btn w-100"
+                           style="border: 2px solid #8D6E63; background: transparent; color: #8D6E63; font-weight: 600; padding: 12px; border-radius: 12px; text-decoration: none;">
+                            <i class="bi bi-file-pdf me-2"></i>Сохранить как PDF
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('cards.print_cards', template_id=template.id) }}"
+                           class="btn w-100"
+                           style="border: 2px solid #E8A798; background: transparent; color: #E8A798; font-weight: 600; padding: 12px; border-radius: 12px; text-decoration: none;">
+                            <i class="bi bi-eye me-2"></i>Предпросмотр печати
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('cards.my_cards') }}"
+                           class="btn w-100"
+                           style="border: 2px solid #5D4037; background: transparent; color: #5D4037; font-weight: 600; padding: 12px; border-radius: 12px; text-decoration: none;">
+                            <i class="bi bi-arrow-left me-2"></i>Назад к карточкам
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно настроек -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content premium-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" style="color: #5D4037; font-weight: 700;">
+                    <i class="bi bi-gear me-2"></i>Настройки печати
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="printSettingsForm">
+                    <!-- Выбор принтера -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #5D4037;">Принтер</label>
+                        <select class="form-control"
+                                style="border: 2px solid #E8DFD0; border-radius: 8px; padding: 10px;"
+                                id="printerSelect">
+                            <option value="default">Принтер по умолчанию</option>
+                            <option value="system">Выбрать принтер...</option>
+                        </select>
+                    </div>
+
+                    <!-- Настройки бумаги -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: #5D4037;">Формат бумаги</label>
+                            <select class="form-control" style="border: 2px solid #E8DFD0; border-radius: 8px; padding: 10px;"
+                                    id="paperSize">
+                                <option value="A4">A4</option>
+                                <option value="A5">A5</option>
+                                <option value="Letter">Letter</option>
+                                <option value="Legal">Legal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: #5D4037;">Ориентация</label>
+                            <select class="form-control" style="border: 2px solid #E8DFD0; border-radius: 8px; padding: 10px;"
+                                    id="orientation">
+                                <option value="portrait">Книжная</option>
+                                <option value="landscape">Альбомная</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Настройки карточек -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: #5D4037;">Карточек на листе</label>
+                            <select class="form-control" style="border: 2px solid #E8DFD0; border-radius: 8px; padding: 10px;"
+                                    id="cardsPerPage">
+                                <option value="1">1</option>
+                                <option value="4" selected>4 (2×2)</option>
+                                <option value="6">6 (2×3)</option>
+                                <option value="9">9 (3×3)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: #5D4037;">Двусторонняя</label>
+                            <select class="form-control" style="border: 2px solid #E8DFD0; border-radius: 8px; padding: 10px;"
+                                    id="doubleSided">
+                                <option value="none">Нет</option>
+                                <option value="short">Короткая сторона</option>
+                                <option value="long">Длинная сторона</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительные опции -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #5D4037;">Качество</label>
+                        <select class="form-control" style="border: 2px solid #E8DFD0; border-radius: 8px; padding: 10px;"
+                                id="quality">
+                            <option value="standard">Стандартное</option>
+                            <option value="high" selected>Высокое</option>
+                            <option value="draft">Черновик</option>
+                        </select>
+                    </div>
+
+                    <!-- Чекбоксы -->
+                    <div class="mb-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="showCropMarks" checked>
+                            <label class="form-check-label" style="color: #8D6E63;">
+                                Показать метки обрезки
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="showMargins" checked>
+                            <label class="form-check-label" style="color: #8D6E63;">
+                                Показать поля
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="printGuideLines">
+                            <label class="form-check-label" style="color: #8D6E63;">
+                                Напечатать направляющие
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки модального окна -->
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn flex-fill"
+                                style="background: linear-gradient(135deg, #E8A798, #D4897A); border: none; color: white; font-weight: 600; padding: 10px; border-radius: 8px;"
+                                onclick="applySettingsAndPrint()">
+                            <i class="bi bi-printer me-2"></i>Применить и печатать
+                        </button>
+                        <button type="button" class="btn flex-fill"
+                                style="border: 2px solid #8D6E63; background: transparent; color: #8D6E63; font-weight: 600; padding: 10px; border-radius: 8px;"
+                                data-bs-dismiss="modal">
+                            <i class="bi bi-x-lg me-2"></i>Закрыть
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрытый контент для печати -->
+<div id="printContent" style="display: none;">
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #printContent, #printContent * {
+            visibility: visible;
+        }
+        #printContent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        
+        /* Оптимизация для печати */
+        .card-print {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        /* Убираем фоны для экономии чернил */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    .print-preview-card {
+        border: 2px dashed #E8DFD0;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: white;
+        transition: all 0.3s;
+    }
+    
+    .print-preview-card:hover {
+        border-color: #E8A798;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(232, 167, 152, 0.2);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Конфигурация для печати
+        const config = {
+            printer: 'default',
+            paperSize: 'A4',
+            orientation: 'portrait',
+            cardsPerPage: 4,
+            doubleSided: 'none',
+            quality: 'high',
+            cropMarks: true,
+            margins: true,
+            guidelines: false
+        };
+
+        // Инициализация
+        function init() {
+            // Загрузка сохраненных настроек
+            loadSettings();
+            
+            // Расчет статистики
+            calculateStats();
+            
+            // Обработчики событий
+            setupEventListeners();
+        }
+
+        // Загрузка сохраненных настроек
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('cardPrintSettings');
+            if (savedSettings) {
+                Object.assign(config, JSON.parse(savedSettings));
+                applySettingsToForm();
+            }
+        }
+
+        // Применение настроек к форме
+        function applySettingsToForm() {
+            document.getElementById('paperSize').value = config.paperSize;
+            document.getElementById('orientation').value = config.orientation;
+            document.getElementById('cardsPerPage').value = config.cardsPerPage;
+            document.getElementById('doubleSided').value = config.doubleSided;
+            document.getElementById('quality').value = config.quality;
+            document.getElementById('showCropMarks').checked = config.cropMarks;
+            document.getElementById('showMargins').checked = config.margins;
+            document.getElementById('printGuideLines').checked = config.guidelines;
+        }
+
+        // Сохранение настроек
+        function saveSettings() {
+            config.paperSize = document.getElementById('paperSize').value;
+            config.orientation = document.getElementById('orientation').value;
+            config.cardsPerPage = parseInt(document.getElementById('cardsPerPage').value);
+            config.doubleSided = document.getElementById('doubleSided').value;
+            config.quality = document.getElementById('quality').value;
+            config.cropMarks = document.getElementById('showCropMarks').checked;
+            config.margins = document.getElementById('showMargins').checked;
+            config.guidelines = document.getElementById('printGuideLines').checked;
+            
+            localStorage.setItem('cardPrintSettings', JSON.stringify(config));
+        }
+
+        // Расчет статистики
+        function calculateStats() {
+            const totalCards = {{ cards|length }};
+            const cardsPerPage = config.cardsPerPage;
+            const totalPages = Math.ceil(totalCards / cardsPerPage);
+            
+            // Обновляем отображение
+            document.getElementById('pagesCount').textContent = totalPages;
+            
+            // Расчет использования чернил
+            let inkUsage = 40; // базовый процент
+            if (config.quality === 'high') inkUsage += 20;
+            if (config.doubleSided !== 'none') inkUsage -= 10;
+            document.getElementById('inkUsage').textContent = inkUsage + '%';
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Изменение настроек
+            const settingInputs = [
+                'paperSize', 'orientation', 'cardsPerPage', 
+                'doubleSided', 'quality', 'showCropMarks',
+                'showMargins', 'printGuideLines'
+            ];
+            
+            settingInputs.forEach(inputId => {
+                document.getElementById(inputId).addEventListener('change', function() {
+                    saveSettings();
+                    calculateStats();
+                });
+            });
+
+            // Выбор принтера
+            document.getElementById('printerSelect').addEventListener('change', function() {
+                if (this.value === 'system') {
+                    // Попытка использовать системный диалог выбора принтера
+                    if ('showPrintDialog' in window) {
+                        window.showPrintDialog();
+                    } else {
+                        alert('Для выбора принтера используйте диалог печати браузера (Ctrl+P)');
+                    }
+                }
+            });
+        }
+
+        // Непосредственная печать
+        window.printNow = function() {
+            // Создаем контент для печати
+            createPrintContent();
+            
+            // Запускаем печать
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        // Применить настройки и печатать
+        window.applySettingsAndPrint = function() {
+            saveSettings();
+            calculateStats();
+            
+            // Закрыть модальное окно
+            const modal = bootstrap.Modal.getInstance(document.getElementById('settingsModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Начать печать
+            printNow();
+        }
+
+        // Создание контента для печати
+        function createPrintContent() {
+            const printContent = document.getElementById('printContent');
+            printContent.innerHTML = '';
+
+            const totalCards = {{ cards|length }};
+            const cardsPerPage = config.cardsPerPage;
+            const totalPages = Math.ceil(totalCards / cardsPerPage);
+            const isLandscape = config.orientation === 'landscape';
+            
+            // Создаем страницы
+            for (let page = 0; page < totalPages; page++) {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'print-page';
+                pageDiv.style.cssText = `
+                    width: ${isLandscape ? '297mm' : '210mm'};
+                    height: ${isLandscape ? '210mm' : '297mm'};
+                    margin: 0 auto;
+                    page-break-after: ${page < totalPages - 1 ? 'always' : 'auto'};
+                    position: relative;
+                    background: white;
+                    padding: 10mm;
+                    box-sizing: border-box;
+                `;
+
+                // Добавляем метки обрезки если нужно
+                if (config.cropMarks) {
+                    addCropMarks(pageDiv, isLandscape);
+                }
+
+                // Добавляем сетку если нужно
+                if (config.guidelines) {
+                    addGuidelines(pageDiv, cardsPerPage);
+                }
+
+                // Добавляем карточки на страницу
+                addCardsToPage(pageDiv, page, cardsPerPage);
+
+                printContent.appendChild(pageDiv);
+            }
+        }
+
+        // Добавление меток обрезки
+        function addCropMarks(pageDiv, isLandscape) {
+            const width = isLandscape ? 297 : 210;
+            const height = isLandscape ? 210 : 297;
+            const positions = [
+                // Углы
+                { x: 0, y: 0 },
+                { x: width, y: 0 },
+                { x: 0, y: height },
+                { x: width, y: height },
+                // Середины сторон
+                { x: width/2, y: 0 },
+                { x: width/2, y: height },
+                { x: 0, y: height/2 },
+                { x: width, y: height/2 }
+            ];
+
+            positions.forEach(pos => {
+                const mark = document.createElement('div');
+                mark.style.cssText = `
+                    position: absolute;
+                    left: ${pos.x}mm;
+                    top: ${pos.y}mm;
+                    transform: translate(-50%, -50%);
+                    width: 1mm;
+                    height: 5mm;
+                    background: black;
+                `;
+                pageDiv.appendChild(mark);
+                
+                // Вторая метка перпендикулярно
+                const mark2 = document.createElement('div');
+                mark2.style.cssText = `
+                    position: absolute;
+                    left: ${pos.x}mm;
+                    top: ${pos.y}mm;
+                    transform: translate(-50%, -50%);
+                    width: 5mm;
+                    height: 1mm;
+                    background: black;
+                `;
+                pageDiv.appendChild(mark2);
+            });
+        }
+
+        // Добавление направляющих
+        function addGuidelines(pageDiv, cardsPerPage) {
+            // Простая сетка в зависимости от количества карточек
+            const grid = getGridForCards(cardsPerPage);
+            
+            for (let i = 0; i <= grid.cols; i++) {
+                const line = document.createElement('div');
+                line.style.cssText = `
+                    position: absolute;
+                    left: ${(i * 100 / grid.cols)}%;
+                    top: 0;
+                    bottom: 0;
+                    width: 1px;
+                    background: rgba(0,0,0,0.1);
+                `;
+                pageDiv.appendChild(line);
+            }
+            
+            for (let i = 0; i <= grid.rows; i++) {
+                const line = document.createElement('div');
+                line.style.cssText = `
+                    position: absolute;
+                    top: ${(i * 100 / grid.rows)}%;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: rgba(0,0,0,0.1);
+                `;
+                pageDiv.appendChild(line);
+            }
+        }
+
+        // Получение сетки для карточек
+        function getGridForCards(cardsPerPage) {
+            switch(cardsPerPage) {
+                case 1: return { rows: 1, cols: 1 };
+                case 4: return { rows: 2, cols: 2 };
+                case 6: return { rows: 2, cols: 3 };
+                case 9: return { rows: 3, cols: 3 };
+                default: return { rows: 2, cols: 2 };
+            }
+        }
+
+        // Добавление карточек на страницу
+        function addCardsToPage(pageDiv, pageIndex, cardsPerPage) {
+            const cards = [
+                {% for card in cards %}
+                {
+                    title: {{ card.title|tojson|safe }},
+                    description: {{ card.description|tojson|safe }},
+                    image_filename: {{ card.image_filename|tojson|safe }},
+                    title_x: {{ card.title_x or 10 }},
+                    title_y: {{ card.title_y or 10 }},
+                    title_font_size: {{ card.title_font_size or 16 }},
+                    description_x: {{ card.description_x or 10 }},
+                    description_y: {{ card.description_y or 40 }},
+                    description_font_size: {{ card.description_font_size or 12 }},
+                    image_x: {{ card.image_x or 10 }},
+                    image_y: {{ card.image_y or 100 }},
+                    image_width: {{ card.image_width or 80 }},
+                    image_height: {{ card.image_height or 80 }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const template = {
+                background_color: {{ template.background_color|tojson|safe }},
+                back_title: {{ template.back_title|tojson|safe }},
+                back_background_color: {{ template.back_background_color|tojson|safe }},
+                back_title_x: {{ template.back_title_x or 10 }},
+                back_title_y: {{ template.back_title_y or 10 }},
+                back_title_font_size: {{ template.back_title_font_size or 16 }}
+            };
+
+            const grid = getGridForCards(cardsPerPage);
+            const startIndex = pageIndex * cardsPerPage;
+            const endIndex = Math.min(startIndex + cardsPerPage, cards.length);
+            
+            const pageCards = cards.slice(startIndex, endIndex);
+            
+            // Размеры области для карточек
+            const usableWidth = config.orientation === 'landscape' ? 277 : 190; // мм
+            const usableHeight = config.orientation === 'landscape' ? 190 : 277; // мм
+            
+            const cardWidth = usableWidth / grid.cols - 5; // мм с отступами
+            const cardHeight = usableHeight / grid.rows - 5; // мм
+            
+            // Размещаем карточки
+            pageCards.forEach((card, index) => {
+                const row = Math.floor(index / grid.cols);
+                const col = index % grid.cols;
+                
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-print';
+                cardDiv.style.cssText = `
+                    position: absolute;
+                    left: ${col * (cardWidth + 5) + 2.5}mm;
+                    top: ${row * (cardHeight + 5) + 2.5}mm;
+                    width: ${cardWidth}mm;
+                    height: ${cardHeight}mm;
+                    background: ${template.background_color || '#ffffff'};
+                    border: ${config.margins ? '1px solid #ddd' : 'none'};
+                    padding: 5mm;
+                    box-sizing: border-box;
+                    overflow: hidden;
+                `;
+                
+                // Добавляем контент карточки
+                cardDiv.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; font-size: ${card.title_font_size || 16}pt; 
+                         font-weight: bold; color: #333; margin-bottom: 3mm;">
+                        ${card.title || 'Карточка'}
+                    </div>
+                    <div style="font-family: Arial, sans-serif; font-size: ${card.description_font_size || 12}pt; 
+                         color: #666; line-height: 1.4;">
+                        ${(card.description || '').substring(0, 100)}${card.description && card.description.length > 100 ? '...' : ''}
+                    </div>
+                    ${card.image_filename ? 
+                        `<div style="margin-top: 3mm; text-align: center;">
+                            <small style="color: #999;">[Изображение: ${card.image_filename}]</small>
+                        </div>` : 
+                        ''}
+                `;
+                
+                pageDiv.appendChild(cardDiv);
+            });
+        }
+
+        // Инициализация при загрузке
+        init();
+    });
+</script>
+{% endblock %}

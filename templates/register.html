@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center py-5">
+        <div class="col-lg-6">
+            <div class="premium-card p-5" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(93, 64, 55, 0.1);">
+                <div class="text-center mb-5">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #E8A798, #D4897A); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 35px;">
+                        <i class="bi bi-person-add"></i>
+                    </div>
+                    <h2 style="font-family: 'Playfair Display', serif; font-weight: 700; margin-bottom: 10px;">
+                        <span style="background: linear-gradient(135deg, #E8A798, #5D4037); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Присоединяйтесь к нам!</span>
+                    </h2>
+                    <p style="color: #8D6E63;">Начните создавать профессиональные карточки сегодня</p>
+                </div>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Основные поля -->
+                    <div class="mb-4">
+                        <label style="font-weight: 600; color: #5D4037; margin-bottom: 8px; display: block;">
+                            <i class="bi bi-person-badge me-2" style="background: linear-gradient(135deg, #E8A798, #5D4037); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>Имя пользователя
+                        </label>
+                        {{ form.name(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 12px; padding: 12px 16px; font-size: 16px; width: 100%; box-shadow: none;") }}
+                        {% for error in form.name.errors %}
+                        <div style="color: #dc3545; font-size: 14px; margin-top: 5px;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label style="font-weight: 600; color: #5D4037; margin-bottom: 8px; display: block;">
+                            <i class="bi bi-envelope-fill me-2" style="background: linear-gradient(135deg, #E8A798, #5D4037); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>Email адрес
+                        </label>
+                        {{ form.email(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 12px; padding: 12px 16px; font-size: 16px; width: 100%; box-shadow: none;") }}
+                        {% for error in form.email.errors %}
+                        <div style="color: #dc3545; font-size: 14px; margin-top: 5px;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label style="font-weight: 600; color: #5D4037; margin-bottom: 8px; display: block;">
+                            <i class="bi bi-key-fill me-2" style="background: linear-gradient(135deg, #E8A798, #5D4037); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>Пароль
+                        </label>
+                        {{ form.password(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 12px; padding: 12px 16px; font-size: 16px; width: 100%; box-shadow: none;", type="password") }}
+                        {% for error in form.password.errors %}
+                        <div style="color: #dc3545; font-size: 14px; margin-top: 5px;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label style="font-weight: 600; color: #5D4037; margin-bottom: 8px; display: block;">
+                            <i class="bi bi-shield-check me-2" style="background: linear-gradient(135deg, #E8A798, #5D4037); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>Подтвердите пароль
+                        </label>
+                        {{ form.password_again(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 12px; padding: 12px 16px; font-size: 16px; width: 100%; box-shadow: none;", type="password") }}
+                        {% for error in form.password_again.errors %}
+                        <div style="color: #dc3545; font-size: 14px; margin-top: 5px;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label style="font-weight: 600; color: #5D4037; margin-bottom: 8px; display: block;">
+                            <i class="bi bi-info-circle-fill me-2" style="background: linear-gradient(135deg, #E8A798, #5D4037); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>О себе
+                        </label>
+                        {{ form.about(class="form-control", style="border: 2px solid #E8DFD0; border-radius: 12px; padding: 12px 16px; font-size: 16px; width: 100%; box-shadow: none;", rows="3", placeholder="Расскажите немного о себе...") }}
+                    </div>
+
+                    <!-- Кнопка отправки -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #E8A798, #D4897A); border: none; color: white; font-weight: 600; padding: 14px; border-radius: 50px; font-size: 16px;">
+                            Зарегистрироваться
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Вход -->
+                <div class="text-center mt-4 pt-3" style="border-top: 1px solid #E8DFD0;">
+                    <p style="color: #8D6E63; margin: 0;">Уже есть аккаунт?
+                        <a href="{{ url_for('auth.login') }}" style="color: #E8A798; text-decoration: none; font-weight: 600;">
+                            Войдите здесь
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Отключаем все анимации в базовом шаблоне для этой страницы */
+    .premium-card,
+    .form-control,
+    .btn {
+        transition: none !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    .form-control:focus {
+        border-color: #E8A798 !important;
+        box-shadow: 0 0 0 0.2rem rgba(232, 167, 152, 0.15) !important;
+        outline: none;
+    }
+
+    .btn:hover {
+        transform: none !important;
+    }
+</style>
+
+<script>
+    // Отключаем все скрипты анимаций для этой страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.replaceWith(input.cloneNode(true));
+        });
+    });
+</script>
+{% endblock %}

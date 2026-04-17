@@ -1,0 +1,828 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Панель инструментов -->
+        <div class="col-md-3 sidebar-editor">
+            <div class="premium-card h-100 p-4">
+                <h4 class="fw-bold mb-4 text-gradient">
+                    <i class="bi bi-sliders me-2"></i>Редактор карточки
+                </h4>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">Активный элемент</h6>
+                    <div class="form-group mb-3">
+                        <label class="form-label small text-muted">Выберите элемент</label>
+                        <select class="form-control-premium" id="activeElement">
+                            <option value="title">Заголовок</option>
+                            <option value="description">Описание</option>
+                            <option value="image">Изображение</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4" id="elementControls">
+                    <!-- Контролы для заголовка -->
+                    <div id="titleControls" class="element-controls">
+                        <div class="form-group mb-3">
+                            <label class="form-label small text-muted">Текст заголовка</label>
+                            <input type="text" class="form-control-premium" id="titleText" value="{{ card.title or '' }}">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label small text-muted">Размер шрифта: <span id="titleSizeValue">{{ card.title_font_size or 16 }}</span>px</label>
+                            <input type="range" class="form-range" min="10" max="48" value="{{ card.title_font_size or 16 }}" id="titleFontSize">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">X: <span id="titleXValue">{{ card.title_x or 10 }}</span></label>
+                                <input type="number" class="form-control-premium" id="titleX" value="{{ card.title_x or 10 }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Y: <span id="titleYValue">{{ card.title_y or 10 }}</span></label>
+                                <input type="number" class="form-control-premium" id="titleY" value="{{ card.title_y or 10 }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Контролы для описания -->
+                    <div id="descriptionControls" class="element-controls d-none">
+                        <div class="form-group mb-3">
+                            <label class="form-label small text-muted">Текст описания</label>
+                            <textarea class="form-control-premium" id="descriptionText" rows="3">{{ card.description or '' }}</textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label small text-muted">Размер шрифта: <span id="descriptionSizeValue">{{ card.description_font_size or 12 }}</span>px</label>
+                            <input type="range" class="form-range" min="8" max="24" value="{{ card.description_font_size or 12 }}" id="descriptionFontSize">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">X: <span id="descriptionXValue">{{ card.description_x or 10 }}</span></label>
+                                <input type="number" class="form-control-premium" id="descriptionX" value="{{ card.description_x or 10 }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Y: <span id="descriptionYValue">{{ card.description_y or 40 }}</span></label>
+                                <input type="number" class="form-control-premium" id="descriptionY" value="{{ card.description_y or 40 }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Контролы для изображения -->
+                    <div id="imageControls" class="element-controls d-none">
+                        <div class="form-group mb-3">
+                            <label class="form-label small text-muted">Изображение</label>
+                            <div class="image-preview mb-3">
+                                {% if card.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' + card.image_filename) }}" 
+                                     class="img-fluid rounded" 
+                                     id="imagePreview"
+                                     style="max-height: 150px;">
+                                {% else %}
+                                <div class="text-center p-4 border rounded">
+                                    <i class="bi bi-image text-muted fs-1"></i>
+                                    <p class="small text-muted mt-2">Изображение не загружено</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">X: <span id="imageXValue">{{ card.image_x or 10 }}</span></label>
+                                <input type="number" class="form-control-premium" id="imageX" value="{{ card.image_x or 10 }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Y: <span id="imageYValue">{{ card.image_y or 100 }}</span></label>
+                                <input type="number" class="form-control-premium" id="imageY" value="{{ card.image_y or 100 }}">
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Ширина</label>
+                                <input type="number" class="form-control-premium" id="imageWidth" value="{{ card.image_width or 80 }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Высота</label>
+                                <input type="number" class="form-control-premium" id="imageHeight" value="{{ card.image_height or 80 }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-top">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-premium" id="savePositions">
+                            <i class="bi bi-save me-2"></i>Сохранить изменения
+                        </button>
+                        <a href="{{ url_for('cards.my_cards') }}" class="btn btn-outline-premium">
+                            <i class="bi bi-arrow-left me-2"></i>Назад к карточкам
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Область редактирования -->
+        <div class="col-md-9 editor-area">
+            <div class="premium-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0">Редактирование: {{ card.title or 'Без названия' }}</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-premium" id="toggleGrid">
+                            <i class="bi bi-grid"></i> Сетка
+                        </button>
+                        <button class="btn btn-sm btn-outline-premium" id="toggleRulers">
+                            <i class="bi bi-rulers"></i> Линейки
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Контейнер для карточки -->
+                <div class="card-editor-container">
+                    <!-- Линейки -->
+                    <div class="rulers d-none">
+                        <div class="ruler-horizontal">
+                            <div class="ruler-mark" v-for="n in 20">{% raw %}{{ n * 10 }}{% endraw %}</div>
+                        </div>
+                        <div class="ruler-vertical">
+                            <div class="ruler-mark" v-for="n in 20">{% raw %}{{ n * 10 }}{% endraw %}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Область карточки -->
+                    <div class="card-canvas" 
+                         id="cardCanvas"
+                         style="width: {{ card.template.width or 85 }}mm; 
+                                height: {{ card.template.height or 88 }}mm;
+                                background-color: {{ card.template.background_color or '#FFFFFF' }};
+                                position: relative;
+                                margin: 0 auto;">
+                        
+                        <!-- Сетка -->
+                        <div class="canvas-grid" id="canvasGrid"></div>
+                        
+                        <!-- Редактируемые элементы -->
+                        <div class="draggable-element" 
+                             id="titleElement"
+                             data-type="title"
+                             style="position: absolute;
+                                    left: {{ card.title_x or 10 }}px;
+                                    top: {{ card.title_y or 10 }}px;
+                                    font-size: {{ card.title_font_size or 16 }}px;
+                                    cursor: move;
+                                    user-select: none;
+                                    padding: 5px 10px;
+                                    background: rgba(232, 167, 152, 0.1);
+                                    border: 2px dashed rgba(232, 167, 152, 0.3);
+                                    border-radius: 4px;
+                                    min-width: 100px;
+                                    text-align: center;">
+                            {{ card.title or 'Заголовок' }}
+                        </div>
+                        
+                        <div class="draggable-element" 
+                             id="descriptionElement"
+                             data-type="description"
+                             style="position: absolute;
+                                    left: {{ card.description_x or 10 }}px;
+                                    top: {{ card.description_y or 40 }}px;
+                                    font-size: {{ card.description_font_size or 12 }}px;
+                                    cursor: move;
+                                    user-select: none;
+                                    padding: 5px 10px;
+                                    background: rgba(45, 156, 219, 0.1);
+                                    border: 2px dashed rgba(45, 156, 219, 0.3);
+                                    border-radius: 4px;
+                                    min-width: 150px;
+                                    max-width: 300px;">
+                            {{ card.description or 'Описание карточки' }}
+                        </div>
+                        
+                        {% if card.image_filename %}
+                        <div class="draggable-element" 
+                             id="imageElement"
+                             data-type="image"
+                             style="position: absolute;
+                                    left: {{ card.image_x or 10 }}px;
+                                    top: {{ card.image_y or 100 }}px;
+                                    width: {{ card.image_width or 80 }}px;
+                                    height: {{ card.image_height or 80 }}px;
+                                    cursor: move;
+                                    user-select: none;
+                                    padding: 5px;
+                                    background: rgba(66, 189, 84, 0.1);
+                                    border: 2px dashed rgba(66, 189, 84, 0.3);
+                                    border-radius: 4px;
+                                    overflow: hidden;">
+                            <img src="{{ url_for('static', filename='uploads/' + card.image_filename) }}" 
+                                 style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Размер: {{ card.template.width or 85 }} × {{ card.template.height or 88 }} мм</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Инструкция -->
+            <div class="premium-card p-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Как редактировать</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <div class="instruction-icon me-3">
+                                <i class="bi bi-arrows-move text-gradient fs-4"></i>
+                            </div>
+                            <div>
+                                <strong>Перетаскивание</strong>
+                                <p class="small text-muted mb-0">Перетащите элементы мышью</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <div class="instruction-icon me-3">
+                                <i class="bi bi-sliders text-gradient fs-4"></i>
+                            </div>
+                            <div>
+                                <strong>Настройки</strong>
+                                <p class="small text-muted mb-0">Используйте панель справа</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <div class="instruction-icon me-3">
+                                <i class="bi bi-keyboard text-gradient fs-4"></i>
+                            </div>
+                            <div>
+                                <strong>Горячие клавиши</strong>
+                                <p class="small text-muted mb-0">Ctrl+S - сохранить, Esc - отмена</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar-editor {
+        background: var(--beige-light);
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+        position: sticky;
+        top: 80px;
+    }
+    
+    .editor-area {
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
+    
+    .card-editor-container {
+        position: relative;
+        padding: 40px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid var(--beige-dark);
+        min-height: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .card-canvas {
+        position: relative;
+        border: 1px solid #ccc;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transform-origin: center;
+        transform: scale(1.5);
+        margin: 40px auto;
+    }
+    
+    .draggable-element {
+        transition: border-color 0.2s ease;
+    }
+    
+    .draggable-element:hover {
+        border-color: var(--coral-primary) !important;
+        background-color: rgba(232, 167, 152, 0.2) !important;
+    }
+    
+    .draggable-element.selected {
+        border-color: var(--coral-primary) !important;
+        border-style: solid !important;
+        background-color: rgba(232, 167, 152, 0.3) !important;
+        z-index: 1000;
+    }
+    
+    .canvas-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+        background-size: 10px 10px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .canvas-grid.visible {
+        opacity: 1;
+    }
+    
+    .rulers {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+    
+    .ruler-horizontal {
+        position: absolute;
+        top: -30px;
+        left: 0;
+        right: 0;
+        height: 20px;
+        display: flex;
+        border-bottom: 1px solid #999;
+    }
+    
+    .ruler-vertical {
+        position: absolute;
+        top: 0;
+        left: -30px;
+        bottom: 0;
+        width: 20px;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #999;
+    }
+    
+    .ruler-mark {
+        font-size: 10px;
+        color: #666;
+    }
+    
+    .ruler-horizontal .ruler-mark {
+        width: 50px;
+        text-align: center;
+        border-right: 1px solid #ddd;
+    }
+    
+    .ruler-vertical .ruler-mark {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .instruction-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(232, 167, 152, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .form-range {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--beige-dark);
+    }
+    
+    .form-range::-webkit-slider-thumb {
+        background: var(--coral-primary);
+    }
+    
+    @media (max-width: 768px) {
+        .sidebar-editor {
+            height: auto;
+            position: static;
+        }
+        
+        .editor-area {
+            height: auto;
+        }
+        
+        .card-canvas {
+            transform: scale(1);
+            margin: 20px auto;
+        }
+    }
+</style>
+
+<script>
+    // Основные переменные
+    let activeElement = 'title';
+    let isDragging = false;
+    let currentDraggable = null;
+    let startX, startY;
+    let elementX, elementY;
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEditor();
+        setupEventListeners();
+        updateActiveElement('title');
+    });
+    
+    function initializeEditor() {
+        // Создаем сетку
+        createGrid();
+        
+        // Назначаем элементы для перетаскивания
+        document.querySelectorAll('.draggable-element').forEach(element => {
+            element.addEventListener('mousedown', startDragging);
+            element.addEventListener('touchstart', startDraggingTouch, { passive: false });
+            
+            // Клик для выбора элемента
+            element.addEventListener('click', function(e) {
+                if (!isDragging) {
+                    selectElement(this);
+                }
+            });
+        });
+        
+        // Предотвращаем выделение текста при перетаскивании
+        document.addEventListener('selectstart', function(e) {
+            if (isDragging) e.preventDefault();
+        });
+        
+        // Горячие клавиши
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                savePositions();
+            }
+            
+            if (e.key === 'Escape') {
+                if (currentDraggable) {
+                    currentDraggable.classList.remove('selected');
+                    currentDraggable = null;
+                }
+            }
+            
+            // Стрелки для перемещения
+            if (currentDraggable && !isDragging) {
+                const type = currentDraggable.dataset.type;
+                switch(e.key) {
+                    case 'ArrowUp':
+                        moveElement(type, 0, -1);
+                        break;
+                    case 'ArrowDown':
+                        moveElement(type, 0, 1);
+                        break;
+                    case 'ArrowLeft':
+                        moveElement(type, -1, 0);
+                        break;
+                    case 'ArrowRight':
+                        moveElement(type, 1, 0);
+                        break;
+                }
+            }
+        });
+    }
+    
+    function setupEventListeners() {
+        // Переключение активного элемента
+        document.getElementById('activeElement').addEventListener('change', function() {
+            updateActiveElement(this.value);
+        });
+        
+        // Контролы для заголовка
+        document.getElementById('titleText').addEventListener('input', function() {
+            document.getElementById('titleElement').textContent = this.value;
+        });
+        
+        document.getElementById('titleFontSize').addEventListener('input', function() {
+            document.getElementById('titleSizeValue').textContent = this.value;
+            document.getElementById('titleElement').style.fontSize = this.value + 'px';
+        });
+        
+        document.getElementById('titleX').addEventListener('input', function() {
+            document.getElementById('titleXValue').textContent = this.value;
+            document.getElementById('titleElement').style.left = this.value + 'px';
+        });
+        
+        document.getElementById('titleY').addEventListener('input', function() {
+            document.getElementById('titleYValue').textContent = this.value;
+            document.getElementById('titleElement').style.top = this.value + 'px';
+        });
+        
+        // Контролы для описания
+        document.getElementById('descriptionText').addEventListener('input', function() {
+            document.getElementById('descriptionElement').textContent = this.value;
+        });
+        
+        document.getElementById('descriptionFontSize').addEventListener('input', function() {
+            document.getElementById('descriptionSizeValue').textContent = this.value;
+            document.getElementById('descriptionElement').style.fontSize = this.value + 'px';
+        });
+        
+        document.getElementById('descriptionX').addEventListener('input', function() {
+            document.getElementById('descriptionXValue').textContent = this.value;
+            document.getElementById('descriptionElement').style.left = this.value + 'px';
+        });
+        
+        document.getElementById('descriptionY').addEventListener('input', function() {
+            document.getElementById('descriptionYValue').textContent = this.value;
+            document.getElementById('descriptionElement').style.top = this.value + 'px';
+        });
+        
+        // Контролы для изображения
+        document.getElementById('imageX').addEventListener('input', function() {
+            document.getElementById('imageXValue').textContent = this.value;
+            const imageElement = document.getElementById('imageElement');
+            if (imageElement) imageElement.style.left = this.value + 'px';
+        });
+        
+        document.getElementById('imageY').addEventListener('input', function() {
+            document.getElementById('imageYValue').textContent = this.value;
+            const imageElement = document.getElementById('imageElement');
+            if (imageElement) imageElement.style.top = this.value + 'px';
+        });
+        
+        document.getElementById('imageWidth').addEventListener('input', function() {
+            const imageElement = document.getElementById('imageElement');
+            if (imageElement) imageElement.style.width = this.value + 'px';
+        });
+        
+        document.getElementById('imageHeight').addEventListener('input', function() {
+            const imageElement = document.getElementById('imageElement');
+            if (imageElement) imageElement.style.height = this.value + 'px';
+        });
+        
+        // Кнопки
+        document.getElementById('toggleGrid').addEventListener('click', function() {
+            document.getElementById('canvasGrid').classList.toggle('visible');
+            this.classList.toggle('btn-premium');
+            this.classList.toggle('btn-outline-premium');
+        });
+        
+        document.getElementById('toggleRulers').addEventListener('click', function() {
+            document.querySelector('.rulers').classList.toggle('d-none');
+            this.classList.toggle('btn-premium');
+            this.classList.toggle('btn-outline-premium');
+        });
+        
+        document.getElementById('savePositions').addEventListener('click', savePositions);
+    }
+    
+    function updateActiveElement(elementType) {
+        activeElement = elementType;
+        
+        // Скрываем все контролы
+        document.querySelectorAll('.element-controls').forEach(el => {
+            el.classList.add('d-none');
+        });
+        
+        // Показываем нужные контролы
+        document.getElementById(elementType + 'Controls').classList.remove('d-none');
+        
+        // Выделяем соответствующий элемент на холсте
+        selectElement(document.getElementById(elementType + 'Element'));
+    }
+    
+    function selectElement(element) {
+        if (!element) return;
+        
+        // Убираем выделение с других элементов
+        document.querySelectorAll('.draggable-element').forEach(el => {
+            el.classList.remove('selected');
+        });
+        
+        // Выделяем текущий элемент
+        element.classList.add('selected');
+        currentDraggable = element;
+        
+        // Обновляем выпадающий список
+        const type = element.dataset.type;
+        document.getElementById('activeElement').value = type;
+        updateActiveElement(type);
+    }
+    
+    function startDragging(e) {
+        e.preventDefault();
+        isDragging = true;
+        currentDraggable = this;
+        
+        // Выделяем элемент
+        selectElement(this);
+        
+        // Получаем начальные координаты
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        const rect = this.getBoundingClientRect();
+        const canvasRect = document.getElementById('cardCanvas').getBoundingClientRect();
+        
+        elementX = rect.left - canvasRect.left;
+        elementY = rect.top - canvasRect.top;
+        
+        // Добавляем обработчики для движения и окончания перетаскивания
+        document.addEventListener('mousemove', doDragging);
+        document.addEventListener('mouseup', stopDragging);
+    }
+    
+    function startDraggingTouch(e) {
+        if (e.touches.length !== 1) return;
+        
+        e.preventDefault();
+        isDragging = true;
+        currentDraggable = this;
+        selectElement(this);
+        
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        
+        const rect = this.getBoundingClientRect();
+        const canvasRect = document.getElementById('cardCanvas').getBoundingClientRect();
+        
+        elementX = rect.left - canvasRect.left;
+        elementY = rect.top - canvasRect.top;
+        
+        document.addEventListener('touchmove', doDraggingTouch, { passive: false });
+        document.addEventListener('touchend', stopDragging);
+    }
+    
+    function doDragging(e) {
+        if (!isDragging || !currentDraggable) return;
+        
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        const newX = elementX + dx;
+        const newY = elementY + dy;
+        
+        // Обновляем позицию элемента
+        currentDraggable.style.left = newX + 'px';
+        currentDraggable.style.top = newY + 'px';
+        
+        // Обновляем значения в форме
+        const type = currentDraggable.dataset.type;
+        document.getElementById(type + 'X').value = Math.round(newX);
+        document.getElementById(type + 'XValue').textContent = Math.round(newX);
+        
+        document.getElementById(type + 'Y').value = Math.round(newY);
+        document.getElementById(type + 'YValue').textContent = Math.round(newY);
+    }
+    
+    function doDraggingTouch(e) {
+        if (!isDragging || !currentDraggable || e.touches.length !== 1) return;
+        
+        e.preventDefault();
+        const touch = e.touches[0];
+        
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        
+        const newX = elementX + dx;
+        const newY = elementY + dy;
+        
+        currentDraggable.style.left = newX + 'px';
+        currentDraggable.style.top = newY + 'px';
+        
+        const type = currentDraggable.dataset.type;
+        document.getElementById(type + 'X').value = Math.round(newX);
+        document.getElementById(type + 'XValue').textContent = Math.round(newX);
+        
+        document.getElementById(type + 'Y').value = Math.round(newY);
+        document.getElementById(type + 'YValue').textContent = Math.round(newY);
+    }
+    
+    function stopDragging() {
+        isDragging = false;
+        document.removeEventListener('mousemove', doDragging);
+        document.removeEventListener('touchmove', doDraggingTouch);
+        document.removeEventListener('mouseup', stopDragging);
+        document.removeEventListener('touchend', stopDragging);
+    }
+    
+    function moveElement(type, dx, dy) {
+        const element = document.getElementById(type + 'Element');
+        if (!element) return;
+        
+        const currentX = parseInt(element.style.left) || 0;
+        const currentY = parseInt(element.style.top) || 0;
+        
+        const newX = currentX + dx;
+        const newY = currentY + dy;
+        
+        element.style.left = newX + 'px';
+        element.style.top = newY + 'px';
+        
+        // Обновляем значения в форме
+        document.getElementById(type + 'X').value = newX;
+        document.getElementById(type + 'XValue').textContent = newX;
+        
+        document.getElementById(type + 'Y').value = newY;
+        document.getElementById(type + 'YValue').textContent = newY;
+    }
+    
+    function createGrid() {
+        const grid = document.getElementById('canvasGrid');
+        // Сетка уже создана через CSS
+    }
+    
+    async function savePositions() {
+        const saveButton = document.getElementById('savePositions');
+        const originalText = saveButton.innerHTML;
+        
+        try {
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Сохранение...';
+            
+            // Собираем данные
+            const data = {
+                title_x: document.getElementById('titleX').value,
+                title_y: document.getElementById('titleY').value,
+                title_font_size: document.getElementById('titleFontSize').value,
+                description_x: document.getElementById('descriptionX').value,
+                description_y: document.getElementById('descriptionY').value,
+                description_font_size: document.getElementById('descriptionFontSize').value,
+                image_x: document.getElementById('imageX').value,
+                image_y: document.getElementById('imageY').value
+            };
+            
+            // Отправляем на сервер
+            const response = await fetch(window.location.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(data)
+            });
+            
+            if (response.ok) {
+                showNotification('Позиции успешно сохранены!', 'success');
+            } else {
+                throw new Error('Ошибка сохранения');
+            }
+            
+        } catch (error) {
+            console.error('Ошибка сохранения:', error);
+            showNotification('Ошибка при сохранении', 'error');
+        } finally {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalText;
+        }
+    }
+    
+    function showNotification(message, type) {
+        // Создаем уведомление
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'} me-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Удаляем через 3 секунды
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Добавляем стили для анимации уведомлений
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}
